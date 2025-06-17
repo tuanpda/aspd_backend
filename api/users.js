@@ -8,7 +8,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-var folderAvatar = "/home/thuan/tcdvthu_client/static/avatar";
+var folderAvatar = "/home/thuan/aspd_client/static/avatar";
 var urlServer = "27.73.37.94:4042";
 
 // SET STORAGE

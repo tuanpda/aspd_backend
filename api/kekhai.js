@@ -15,7 +15,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-var folderBienlaidientu = "/home/thuan/tcdvthu_client/static/bienlaidientu";
+var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu";
 // var folderBienlaidientu = "D://";
 var urlServer = "27.73.37.94:4042";
 
