@@ -1970,9 +1970,9 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
     // console.log(ngaykekhaiInput);
 
     // Khởi tạo câu truy vấn cơ bản
-    let query = "SELECT * FROM kekhai WHERE madaily=@madaily and 1=1  order by _id desc";
+    let query = "SELECT * FROM kekhai WHERE madaily=@madaily";
     let queryCount =
-      "SELECT COUNT(*) AS totalCount FROM kekhai WHERE madaily=@madaily and 1=1  order by _id desc";
+      "SELECT COUNT(*) AS totalCount FROM kekhai WHERE madaily=@madaily";
 
     // Thêm các điều kiện tìm kiếm nếu có
     if (kykekhai) {
@@ -3133,7 +3133,7 @@ router.get("/bienlai-search", async (req, res) => {
 
 // quản lý biên lai từng điểm thu
 router.get("/bienlai-search-diemthu", async (req, res) => {
-  // console.log(req.query);
+  console.log(req.query);
   
   try {
     const {
@@ -3143,7 +3143,6 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
       ngaykekhaiden,
       masobhxh,
       hoten,
-      tendaily,
       loaihinh,
       page = 1,
       limit = 30,
@@ -3191,12 +3190,6 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
       request.input("hoten", `%${hoten.trim()}%`);
     }
 
-    if (tendaily) {
-      query += " AND tendaily LIKE @tendaily";
-      queryCount += " AND tendaily LIKE @tendaily";
-      request.input("tendaily", `%${tendaily.trim()}%`);
-    }
-
     if (loaihinh) {
       query += " AND loaihinh = @loaihinh";
       queryCount += " AND loaihinh = @loaihinh";
@@ -3213,6 +3206,7 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
 
     // Tính count
     const countRequest = pool.request();
+    countRequest.input("madaily", madaily);
     if (active === "1" || active === "0") countRequest.input("active", active === "1" ? 1 : 0);
     if (ngaykekhai && !ngaykekhaiden) countRequest.input("ngaykekhai", new Date(ngaykekhai));
     if (ngaykekhai && ngaykekhaiden) {
@@ -3221,7 +3215,6 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
     }
     if (masobhxh) countRequest.input("masobhxh", masobhxh.trim());
     if (hoten) countRequest.input("hoten", `%${hoten.trim()}%`);
-    if (tendaily) countRequest.input("tendaily", `%${tendaily.trim()}%`);
     if (loaihinh) countRequest.input("loaihinh", loaihinh);
 
     const countResult = await countRequest.query(queryCount);
