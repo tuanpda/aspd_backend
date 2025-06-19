@@ -442,6 +442,7 @@ router.post("/add-kekhai-series", async (req, res) => {
           .input("ngaysinh", item.ngaysinh)
           .input("gioitinh", item.gioitinh)
           .input("nguoithu", item.nguoithu)
+          .input("manguoithu", item.manguoithu)
           .input("tienluongcs", item.tienluongcs)
           .input("sotien", item.sotien)
           .input("tylengansachdiaphuong", item.tylengansachdiaphuong)
@@ -490,7 +491,7 @@ router.post("/add-kekhai-series", async (req, res) => {
           .input("tennguoitao", item.tennguoitao)
           .input("hinhthucnap", item.hinhthucnap).query(`
                   INSERT INTO kekhai (sohoso, matochuc, tentochuc, madaily, tendaily, maloaihinh, tenloaihinh, hoten, masobhxh, cccd, dienthoai,	
-                    maphuongan, tenphuongan, ngaysinh, gioitinh, nguoithu, tienluongcs, sotien,	
+                    maphuongan, tenphuongan, ngaysinh, gioitinh, nguoithu, manguoithu, tienluongcs, sotien,	
                     tylengansachdiaphuong, hotrokhac, tungay, denngay, tyledong, muctiendong, sothang,
                     maphuongthucdong, tenphuongthucdong, tuthang, denthang, tientunguyendong, tienlai, madoituong,	
                     tendoituong, tylensnnht, tiennsnnht, tylensdp, tiennsdp, matinh, tentinh, maquanhuyen, tenquanhuyen,	
@@ -498,7 +499,7 @@ router.post("/add-kekhai-series", async (req, res) => {
                     createdAt, createdBy, updatedAt, updatedBy, dotkekhai, kykekhai, ngaykekhai, ngaybienlai, sobienlai, trangthai, 
                     status_hosoloi, status_naptien, hosoIdentity, tennguoitao, hinhthucnap) 
                   VALUES (@sohoso, @matochuc, @tentochuc, @madaily, @tendaily, @maloaihinh, @tenloaihinh, @hoten, @masobhxh, @cccd, @dienthoai,	
-                    @maphuongan, @tenphuongan, @ngaysinh, @gioitinh, @nguoithu, @tienluongcs, @sotien,	
+                    @maphuongan, @tenphuongan, @ngaysinh, @gioitinh, @nguoithu, @manguoithu, @tienluongcs, @sotien,	
                     @tylengansachdiaphuong, @hotrokhac, @tungay, @denngay, @tyledong, @muctiendong,	@sothang,
                     @maphuongthucdong, @tenphuongthucdong, @tuthang, @denthang, @tientunguyendong, @tienlai, @madoituong,	
                     @tendoituong, @tylensnnht, @tiennsnnht, @tylensdp, @tiennsdp, @matinh, @tentinh, @maquanhuyen, @tenquanhuyen,	
@@ -931,6 +932,91 @@ router.post("/cancel-invoice-status", async (req, res) => {
         hoten,
         masobhxh,
         ghichu,
+      },
+    });
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    res.status(500).json({
+      success: false,
+      message: `Thất bại cập nhật _id: ${_id}`,
+      error: error.message,
+      data: {
+        _id,
+        hoten,
+        masobhxh,
+      },
+    });
+  } finally {
+    if (pool.connected) await pool.close();
+  }
+});
+
+// reset hồ sơ từ đã huỷ duyệt sang chưa phê duyệt
+router.post("/reset-hoso-from-dahuy-to-chuaduyet", async (req, res) => {
+  // console.log(req.body);
+  const { _id, hoten, masobhxh } = req.body;
+  try {
+    await pool.connect();
+    const result = await pool
+      .request()
+      .input("_id", _id)
+      .query(`UPDATE kekhai SET trangthai=0 where _id=@_id`);
+
+    res.json({
+      success: true,
+      message: `Cập nhật thành công cho _id: ${_id}`,
+      data: {
+        _id,
+        hoten,
+        masobhxh,
+      },
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// xác nhận reset hồ sơ từ đã phê duyệt sang chưa phê duyệt
+router.post("/reset-hoso-from-daduyet-to-chuaduyet", async (req, res) => {
+  const { _id, hoten, masobhxh, hosoIdentity } = req.body;
+
+  let transaction = null;
+
+  try {
+    await pool.connect();
+
+    transaction = new Transaction(pool);
+    await transaction.begin();
+
+    // Câu 1: cập nhật bảng kekhai
+    const request1 = transaction.request();
+    await request1
+      .input("_id", _id)
+      .query(`UPDATE kekhai SET status_naptien=0 WHERE _id=@_id`);
+
+    // Câu 2: cập nhật bảng bienlaidientu
+    const request2 = transaction.request();
+    await request2
+      .input("hosoIdentity", hosoIdentity)
+      .query(
+        `UPDATE bienlaidientu SET active=0 WHERE hosoIdentity=@hosoIdentity`
+      );
+
+    // Câu 3: cập nhật bảng bienlai
+    const request3 = transaction.request();
+    await request3
+      .input("hosoIdentity", hosoIdentity)
+      .query(`UPDATE bienlai SET active=0 WHERE hosoIdentity=@hosoIdentity`);
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      message: `Cập nhật thành công cho _id: ${_id}`,
+      data: {
+        _id,
+        hoten,
+        masobhxh,
       },
     });
   } catch (error) {
@@ -3019,7 +3105,7 @@ router.get("/tim-dulieuthe", async (req, res) => {
 // quản lý biên lai
 router.get("/bienlai-search", async (req, res) => {
   // console.log(req.query);
-  
+
   try {
     const {
       active,
@@ -3095,8 +3181,10 @@ router.get("/bienlai-search", async (req, res) => {
 
     // Tính count
     const countRequest = pool.request();
-    if (active === "1" || active === "0") countRequest.input("active", active === "1" ? 1 : 0);
-    if (ngaykekhai && !ngaykekhaiden) countRequest.input("ngaykekhai", new Date(ngaykekhai));
+    if (active === "1" || active === "0")
+      countRequest.input("active", active === "1" ? 1 : 0);
+    if (ngaykekhai && !ngaykekhaiden)
+      countRequest.input("ngaykekhai", new Date(ngaykekhai));
     if (ngaykekhai && ngaykekhaiden) {
       countRequest.input("ngaykekhai", new Date(ngaykekhai));
       countRequest.input("ngaykekhaiden", new Date(ngaykekhaiden));
@@ -3113,16 +3201,20 @@ router.get("/bienlai-search", async (req, res) => {
     const info = {
       count: totalCount,
       pages: totalPages,
-      next: pageNumber < totalPages ? `${req.path}?page=${pageNumber + 1}&limit=${limit}` : null,
-      prev: pageNumber > 1 ? `${req.path}?page=${pageNumber - 1}&limit=${limit}` : null,
+      next:
+        pageNumber < totalPages
+          ? `${req.path}?page=${pageNumber + 1}&limit=${limit}`
+          : null,
+      prev:
+        pageNumber > 1
+          ? `${req.path}?page=${pageNumber - 1}&limit=${limit}`
+          : null,
     };
 
     res.json({ info, results: result.recordset });
 
     // console.log("Query cuối:", query);
-    // console.log("Input:", req.query); 
-
-
+    // console.log("Input:", req.query);
   } catch (err) {
     console.error("Lỗi tìm kiếm biên lai:", err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -3134,7 +3226,7 @@ router.get("/bienlai-search", async (req, res) => {
 // quản lý biên lai từng điểm thu
 router.get("/bienlai-search-diemthu", async (req, res) => {
   // console.log(req.query);
-  
+
   try {
     const {
       madaily,
@@ -3207,8 +3299,10 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
     // Tính count
     const countRequest = pool.request();
     countRequest.input("madaily", madaily);
-    if (active === "1" || active === "0") countRequest.input("active", active === "1" ? 1 : 0);
-    if (ngaykekhai && !ngaykekhaiden) countRequest.input("ngaykekhai", new Date(ngaykekhai));
+    if (active === "1" || active === "0")
+      countRequest.input("active", active === "1" ? 1 : 0);
+    if (ngaykekhai && !ngaykekhaiden)
+      countRequest.input("ngaykekhai", new Date(ngaykekhai));
     if (ngaykekhai && ngaykekhaiden) {
       countRequest.input("ngaykekhai", new Date(ngaykekhai));
       countRequest.input("ngaykekhaiden", new Date(ngaykekhaiden));
@@ -3224,16 +3318,20 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
     const info = {
       count: totalCount,
       pages: totalPages,
-      next: pageNumber < totalPages ? `${req.path}?page=${pageNumber + 1}&limit=${limit}` : null,
-      prev: pageNumber > 1 ? `${req.path}?page=${pageNumber - 1}&limit=${limit}` : null,
+      next:
+        pageNumber < totalPages
+          ? `${req.path}?page=${pageNumber + 1}&limit=${limit}`
+          : null,
+      prev:
+        pageNumber > 1
+          ? `${req.path}?page=${pageNumber - 1}&limit=${limit}`
+          : null,
     };
 
     res.json({ info, results: result.recordset });
 
     // console.log("Query cuối:", query);
-    // console.log("Input:", req.query); 
-
-
+    // console.log("Input:", req.query);
   } catch (err) {
     console.error("Lỗi tìm kiếm biên lai:", err);
     res.status(500).json({ error: "Internal Server Error" });
