@@ -15,7 +15,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu";
+var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
 // var folderBienlaidientu = "D://";
 var urlServer = "14.224.148.17:4042";
 
@@ -2054,6 +2054,7 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
       hoten,
       madaily,
       trangthaihs,
+      cccd,
       page = 1,
       limit = 30,
     } = req.query;
@@ -2071,9 +2072,9 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
     // console.log(ngaykekhaiInput);
 
     // Khởi tạo câu truy vấn cơ bản
-    let query = "SELECT * FROM kekhai WHERE madaily=@madaily";
+    let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
     let queryCount =
-      "SELECT COUNT(*) AS totalCount FROM kekhai WHERE madaily=@madaily";
+      `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
 
     // Thêm các điều kiện tìm kiếm nếu có
     if (trangthaihs) {
@@ -2795,34 +2796,35 @@ router.get("/view-item-bienlai", async (req, res) => {
 router.post("/thongke-hosokekhai", async (req, res) => {
   // console.log(req.body);
 
-  const { madaily } = req.body;
+  const { cccd } = req.body;
 
-  if (!madaily) {
-    return res.status(400).json({ success: false, message: "Thiếu mã đại lý" });
+  if (!cccd) {
+    return res.status(400).json({ success: false, message: "Thiếu mã cccd" });
   }
 
   try {
     await pool.connect();
-    const request = pool.request().input("madaily", madaily);
+    const request = pool.request().input("cccd", cccd);
 
     const query = `
-      SELECT 
-          COUNT(*) AS tong_hoso,
-          COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
-          COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
-          COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
-          COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien=0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
-          COUNT(DISTINCT sohoso) AS tong_sohoso,
-          COALESCE(
-              SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
-              0
-            ) AS tong_sotien,
-          COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
-          COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
-          COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
-      FROM kekhai
-      WHERE madaily = @madaily
-    `;
+            SELECT
+              COUNT(*) AS tong_hoso,
+              COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
+              COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
+              COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
+              COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien = 0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
+              COUNT(DISTINCT sohoso) AS tong_sohoso,
+              COALESCE(
+                SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
+                0
+              ) AS tong_sotien,
+              COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
+              COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
+              COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
+            FROM kekhai
+            WHERE RIGHT(sohoso, 12) = @cccd
+            `;
+
 
     const result = await request.query(query);
     const data = result.recordset[0];
@@ -2913,7 +2915,7 @@ router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily", async (req, res) => {
 
     const nam = parseInt(req.query.nam);
     const thang = parseInt(req.query.thang);
-    const madaily = req.query.madaily;
+    const cccd = req.query.cccd;
 
     const query = `
       SELECT 
@@ -2924,7 +2926,7 @@ router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily", async (req, res) => {
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
         AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
         AND MONTH(CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-        AND madaily='${madaily}'
+        AND RIGHT(sohoso, 12) = '${cccd}'
       GROUP BY maloaihinh
       ORDER BY maloaihinh
     `;
@@ -3264,6 +3266,7 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
       masobhxh,
       hoten,
       loaihinh,
+      cccd,
       page = 1,
       limit = 30,
     } = req.query;
@@ -3272,8 +3275,8 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
     const limitNumber = parseInt(limit, 10);
     const offset = (pageNumber - 1) * limitNumber;
 
-    let query = `SELECT * FROM bienlaidientu WHERE madaily=@madaily`;
-    let queryCount = `SELECT COUNT(*) AS totalCount FROM bienlaidientu WHERE madaily=@madaily`;
+    let query = `SELECT * FROM bienlaidientu WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+    let queryCount = `SELECT COUNT(*) AS totalCount FROM bienlaidientu WHERE RIGHT(sohoso, 12) = '${cccd}'`;
 
     const request = pool.request();
 
