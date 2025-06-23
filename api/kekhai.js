@@ -15,7 +15,8 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+// var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+var folderBienlaidientu = "/home/thuan/bienlaidientu/bienlai";
 // var folderBienlaidientu = "D://";
 var urlServer = "14.224.148.17:4042";
 
