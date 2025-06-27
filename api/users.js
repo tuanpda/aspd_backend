@@ -252,7 +252,7 @@ router.post("/user/fix-info", upload.single("avatar"), async (req, res) => {
     // Ghép đường dẫn và tên tệp bằng phương thức path.join()
     const filePath = path.join(basePath, fileName);
     // console.log(filePath);
-    if (fileName !== "image-default.jpg") {
+    if (fileName !== "default-image.png") {
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error("Đã xảy ra lỗi khi xóa tệp:", err);
@@ -320,7 +320,7 @@ router.post(
       // Ghép đường dẫn và tên tệp bằng phương thức path.join()
       const filePath = path.join(basePath, fileName);
       // console.log(filePath);
-      if (fileName !== "image-default.jpg") {
+      if (fileName !== "default-image.png") {
         fs.unlink(filePath, (err) => {
           if (err) {
             console.error("Đã xảy ra lỗi khi xóa tệp:", err);
@@ -926,7 +926,7 @@ router.post("/delete/user", async (req, res) => {
       const filePath = path.join(basePath, fileName);
       //   console.log(filePath);
       // Nếu không phải ảnh mặc định thì mới xóa file
-      if (fileName !== "image-default.jpg") {
+      if (fileName !== "default-image.png") {
         fs.unlink(filePath, (err) => {
           if (err) {
             console.error("Đã xảy ra lỗi khi xóa tệp:", err);
@@ -970,7 +970,7 @@ router.post("/delete/user-tracuuu-bienlai-dientu", async (req, res) => {
       const filePath = path.join(basePath, fileName);
       //   console.log(filePath);
       // Nếu không phải ảnh mặc định thì mới xóa file
-      if (fileName !== "image-default.jpg") {
+      if (fileName !== "default-image.png") {
         fs.unlink(filePath, (err) => {
           if (err) {
             console.error("Đã xảy ra lỗi khi xóa tệp:", err);
