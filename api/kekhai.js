@@ -15,10 +15,33 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
-var folderBienlaidientu = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
-// var folderBienlaidientu = "/home/thuan/bienlaidientu/bienlai";
-// var folderBienlaidientu = "D://";
-var urlServer = "14.224.148.17:4042";
+let checkDB = process.env.SQL_DATABASE;
+let thumucbienlai = "";
+let urlServer = "";
+let urlServerBackend;
+if (checkDB === "tcdvthu") {
+  thumucbienlai =
+    "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  // "D:\\";    // test máy tuấn máy bàn
+  // var folderBienlaidientu =
+  // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
+  // "/Users/apple/Documents/code/p_159";
+  urlServer = "14.224.148.17:4042";
+  urlServerBackend = "14.224.148.17:1552"; // phủ diễn
+} else if (checkDB === "tcdvthu_hungnguyen") {
+  thumucbienlai =
+    "/home/thuan/ashn_client/static/bienlaidientu/bienlai";
+    // "D:\\";  
+  urlServer = "14.224.129.177:4020";
+  urlServerBackend = "14.224.148.17:4019"; // hưng nguyên
+}
+
+console.log("=====================");
+console.log("Bạn đang sử dụng cơ sở dữ liệu: " + checkDB);
+console.log("Thư mục biên lai: " + thumucbienlai);
+console.log("URL máy chủ: " + urlServer);
+console.log("URL máy chủ backend: " + urlServerBackend);
+console.log("=====================");
 
 // SET STORAGE
 var storage = multer.diskStorage({
@@ -27,7 +50,7 @@ var storage = multer.diskStorage({
     // đường dẫn cho máy dev MacOS
     // cb(null, "/Users/apple/Documents/code/p_Tcdvthu/tcdvthu_client/static/");
     // đường dẫn khi deploy máy chủ PHỦ DIỄN
-    cb(null, folderBienlaidientu);
+    cb(null, thumucbienlai);
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
