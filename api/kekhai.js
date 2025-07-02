@@ -3004,6 +3004,8 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
     const nam = parseInt(req.query.nam);
     const thang = parseInt(req.query.thang);
 
+    console.log(`CCCD: ${cccd}, Năm: ${nam}, Tháng: ${thang}`);
+
     if (!cccd || !nam) {
       return res.status(400).json({
         success: false,
