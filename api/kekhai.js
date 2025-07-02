@@ -3028,7 +3028,7 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
     `;
 
     request.input("nam", nam);
-    request.input("nam", thang);
+    request.input("thang", thang);
     request.input("cccd", cccd);
 
     const result = await request.query(query);
