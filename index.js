@@ -21,6 +21,7 @@ const allowedOrigins = [
   "http://14.224.148.17:3000",
   "http://14.224.148.17:80",
   "http://14.224.148.17",
+  "http://ansinhxahoiphudien.vn",
 ];
 
 app.use(
