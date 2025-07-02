@@ -3004,7 +3004,7 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
     const nam = parseInt(req.query.nam);
     const thang = parseInt(req.query.thang);
 
-    // console.log(`CCCD: ${cccd}, Năm: ${nam}, Tháng: ${thang}`);
+    console.log(`CCCD: ${cccd}, Năm: ${nam}, Tháng: ${thang}`);
 
     if (!cccd || !nam) {
       return res.status(400).json({
@@ -3022,7 +3022,7 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
         AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
         AND MONTH(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-        AND RIGHT(sohoso, 12) = @cccd
+        AND RIGHT(sohoso, 12) = '${cccd}'
       GROUP BY MONTH(CONVERT(datetime, ngaykekhai, 105))
       ORDER BY thang
     `;
