@@ -28,7 +28,7 @@ if (checkDB === "tcdvthu") {
   urlServer = "14.224.148.17:4042";
   urlServerBackend = "14.224.148.17:1552"; // phủ diễn
 } else if (checkDB === "tcdvthu_hungnguyen") {
-  thumucbienlai = "/home/thuan/ashn_client/static/bienlaidientu/bienlai";
+  thumucbienlai = "/home/thuan/ashn_client/static/bienlaihungnguyen/bienlai";
   // "D:\\";
   urlServer = "14.224.129.177:4020";
   urlServerBackend = "14.224.148.17:4019"; // hưng nguyên
@@ -2787,7 +2787,6 @@ router.post("/allsonguoidakekhai-diemthu", async (req, res) => {
       .input("cccd", req.body.cccd)
       .query(`select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`);
     const hs = result.recordset;
-    console.log(hs)
     res.json({
       success: true,
       hs,
