@@ -21,6 +21,7 @@ let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
   thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  // "/Users/wolf/Code\ Project/"; // macos
   // "D:\\";    // test máy tuấn máy bàn
   // var folderBienlaidientu =
   // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
