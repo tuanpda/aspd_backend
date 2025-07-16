@@ -14,6 +14,7 @@ const {
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const { log } = require("console");
 
 let checkDB = process.env.SQL_DATABASE;
 let thumucbienlai = "";
