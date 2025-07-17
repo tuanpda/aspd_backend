@@ -27,7 +27,7 @@ if (checkDB === "tcdvthu") {
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
   // "/Users/wolf/Code\ Project/"; // macos
   // thumucbienlaidahuy =
-    // "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
+  //   "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
   // var folderBienlaidientu =
   // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
   // "/Users/apple/Documents/code/p_159";
@@ -1050,7 +1050,7 @@ router.post("/cancel-invoice-status", async (req, res) => {
 
 // reset hồ sơ từ đã huỷ duyệt sang chưa phê duyệt
 router.post("/reset-hoso-from-dahuy-to-chuaduyet", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { _id, hoten, masobhxh, hosoIdentity } = req.body;
   let transaction = null;
   try {
