@@ -18,12 +18,14 @@ const { log } = require("console");
 
 let checkDB = process.env.SQL_DATABASE;
 let thumucbienlai = "";
+let thumucbienlaidahuy = "";
 let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
   thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  thumucbienlaidahuy = "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
   // "/Users/wolf/Code\ Project/"; // macos
-  // "D:\\";    // test máy tuấn máy bàn
+  // thumucbienlaidahuy = "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy";    // test máy tuấn máy bàn
   // var folderBienlaidientu =
   // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
   // "/Users/apple/Documents/code/p_159";
@@ -57,14 +59,34 @@ var storage = multer.diskStorage({
   },
 });
 
-var upload = multer({ storage: storage });
+var storageHuy = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, thumucbienlaidahuy);
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
 
+var upload = multer({ storage: storage });
+var uploadHuy = multer({ storage: storageHuy });
+
+// Ghi biên lai điện tử
 router.post("/upload-bienlai", upload.single("pdf"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Không có file" });
   }
 
   return res.json({ message: "Lưu thành công", path: req.file.path });
+});
+
+// Ghi biên lai đã hủy
+router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Không có file" });
+  }
+
+  return res.json({ message: "Lưu vào thư mục đã hủy thành công", path: req.file.path });
 });
 
 // add ke khai chạy lẻ từng dòng
@@ -867,7 +889,7 @@ router.post("/ghidulieubienlai", async (req, res) => {
 
 // xác nhận phê duyệt hồ sơ
 router.post("/apply-invoice-status", async (req, res) => {
-  const { _id, hoten, masobhxh, hosoIdentity } = req.body;
+  const { _id, hoten, masobhxh, hosoIdentity, nguoipheduyet, ngaypheduyet } = req.body;
 
   let transaction = null;
 
@@ -881,7 +903,9 @@ router.post("/apply-invoice-status", async (req, res) => {
     const request1 = transaction.request();
     await request1
       .input("_id", _id)
-      .query(`UPDATE kekhai SET status_naptien=1 WHERE _id=@_id`);
+      .input("nguoipheduyet", nguoipheduyet)
+      .input("ngaypheduyet", ngaypheduyet)
+      .query(`UPDATE kekhai SET status_naptien=1, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`);
 
     // Câu 2: cập nhật bảng bienlaidientu
     const request2 = transaction.request();
@@ -929,7 +953,7 @@ router.post("/apply-invoice-status", async (req, res) => {
 router.post("/cancel-invoice-status", async (req, res) => {
   // console.log(req.body);
 
-  const { _id, hoten, masobhxh, ghichu } = req.body;
+  const { _id, hoten, masobhxh, ghichu, nguoipheduyet, ngaypheduyet } = req.body;
 
   let transaction = null;
 
@@ -944,7 +968,9 @@ router.post("/cancel-invoice-status", async (req, res) => {
     await request
       .input("_id", _id)
       .input("ghichu", ghichu)
-      .query(`UPDATE kekhai SET trangthai=1, ghichu=@ghichu WHERE _id=@_id`);
+      .input("nguoipheduyet", nguoipheduyet)
+      .input("ngaypheduyet", ngaypheduyet)
+      .query(`UPDATE kekhai SET trangthai=1, ghichu=@ghichu, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`);
 
     await transaction.commit();
 
@@ -2759,6 +2785,27 @@ router.post("/hosodadaylencongbhvn-diemthu", async (req, res) => {
   }
 });
 
+router.post("/find-bienlaidientu-huybienlai", async (req, res) => {
+  console.log(req.body);
+
+  try {
+    await pool.connect();
+    const result = await pool
+      .request()
+      .input("hosoIdentity", req.body.hosoIdentity)
+      .query(
+        `select * from bienlaidientu where hosoIdentity = @hosoIdentity`
+      );
+    const hs = result.recordset[0];
+    res.json({
+      success: true,
+      hs,
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
 // hồ sơ đã đẩy lên cổng tài khoản tổng hợp
 router.get("/allsonguoidakekhai", async (req, res) => {
   // console.log(req.body);
@@ -2972,14 +3019,16 @@ router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
 
     const query = `
       SELECT 
-          RIGHT(sohoso, 12) AS cccd,
-          SUM(CAST(sotien AS FLOAT)) AS tongtien
-      FROM kekhai
+    RIGHT(k.sohoso, 12) AS cccd,
+          u.name,
+          SUM(CAST(k.sotien AS FLOAT)) AS tongtien
+      FROM kekhai k
+      JOIN users u ON u.cccd = RIGHT(k.sohoso, 12)
       WHERE 
-          TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
-          AND YEAR(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${nam}
-          AND MONTH(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-      GROUP BY RIGHT(sohoso, 12)
+          TRY_CONVERT(datetime, k.ngaykekhai, 105) IS NOT NULL
+          AND YEAR(TRY_CONVERT(datetime, k.ngaykekhai, 105)) = ${nam}
+          AND MONTH(TRY_CONVERT(datetime, k.ngaykekhai, 105)) = ${thang}
+      GROUP BY RIGHT(k.sohoso, 12), u.name
       ORDER BY tongtien DESC;
 
     `;
