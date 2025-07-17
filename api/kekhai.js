@@ -1916,7 +1916,7 @@ router.get("/kykekhai-search-hoso", async (req, res) => {
       hoten,
       tendaily,
       maloaihinh,
-      trangthaihs,
+      // trangthaihs,
       page = 1,
       limit = 30,
     } = req.query;
@@ -1938,18 +1938,18 @@ router.get("/kykekhai-search-hoso", async (req, res) => {
     let queryCount = "SELECT COUNT(*) AS totalCount FROM kekhai WHERE 1=1";
 
     // Thêm các điều kiện tìm kiếm nếu có
-    if (trangthaihs) {
-      if (trangthaihs == "dapheduyet") {
-        query += " AND trangthai = 0 and status_naptien=1";
-        queryCount += " AND trangthai = 0 and status_naptien=1";
-      } else if (trangthaihs == "dahuyduyet") {
-        query += " AND trangthai = 1";
-        queryCount += " AND trangthai = 1";
-      } else if (trangthaihs == "chuapheduyet") {
-        query += " AND trangthai = 0 and status_naptien=0";
-        queryCount += " AND trangthai = 0 and status_naptien=0";
-      }
-    }
+    // if (trangthaihs) {
+    //   if (trangthaihs == "dapheduyet") {
+    //     query += " AND trangthai = 0 and status_naptien=1";
+    //     queryCount += " AND trangthai = 0 and status_naptien=1";
+    //   } else if (trangthaihs == "dahuyduyet") {
+    //     query += " AND trangthai = 1";
+    //     queryCount += " AND trangthai = 1";
+    //   } else if (trangthaihs == "chuapheduyet") {
+    //     query += " AND trangthai = 0 and status_naptien=0";
+    //     queryCount += " AND trangthai = 0 and status_naptien=0";
+    //   }
+    // }
 
     if (kykekhai) {
       query += " AND kykekhai = @kykekhai";
@@ -2077,7 +2077,7 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
       maloaihinh,
       hoten,
       madaily,
-      trangthaihs,
+      // trangthaihs,
       cccd,
       page = 1,
       limit = 30,
@@ -2099,19 +2099,19 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
     let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
     let queryCount = `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
 
-    // Thêm các điều kiện tìm kiếm nếu có
-    if (trangthaihs) {
-      if (trangthaihs == "dapheduyet") {
-        query += " AND trangthai = 0 and status_naptien=1";
-        queryCount += " AND trangthai = 0 and status_naptien=1";
-      } else if (trangthaihs == "dahuyduyet") {
-        query += " AND trangthai = 1";
-        queryCount += " AND trangthai = 1";
-      } else if (trangthaihs == "chuapheduyet") {
-        query += " AND trangthai = 0 and status_naptien=0";
-        queryCount += " AND trangthai = 0 and status_naptien=0";
-      }
-    }
+    // // Thêm các điều kiện tìm kiếm nếu có
+    // if (trangthaihs) {
+    //   if (trangthaihs == "dapheduyet") {
+    //     query += " AND trangthai = 0 and status_naptien=1";
+    //     queryCount += " AND trangthai = 0 and status_naptien=1";
+    //   } else if (trangthaihs == "dahuyduyet") {
+    //     query += " AND trangthai = 1";
+    //     queryCount += " AND trangthai = 1";
+    //   } else if (trangthaihs == "chuapheduyet") {
+    //     query += " AND trangthai = 0 and status_naptien=0";
+    //     queryCount += " AND trangthai = 0 and status_naptien=0";
+    //   }
+    // }
 
     if (kykekhai) {
       query += " AND kykekhai = @kykekhai";
@@ -3092,7 +3092,7 @@ router.get("/search-bienlai-dientu-bhxh", async (req, res) => {
     const query = `
       SELECT * FROM bienlaidientu
       ${whereClause}
-      ORDER BY ngaybienlai DESC
+      ORDER BY _id DESC
     `;
 
     const result = await request.query(query);
