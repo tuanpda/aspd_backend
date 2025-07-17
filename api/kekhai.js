@@ -23,9 +23,11 @@ let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
   thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
-  thumucbienlaidahuy = "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
+  thumucbienlaidahuy =
+    "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
   // "/Users/wolf/Code\ Project/"; // macos
-  // thumucbienlaidahuy = "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy";    // test máy tuấn máy bàn
+  thumucbienlaidahuy =
+    // "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
   // var folderBienlaidientu =
   // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
   // "/Users/apple/Documents/code/p_159";
@@ -86,7 +88,10 @@ router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
     return res.status(400).json({ error: "Không có file" });
   }
 
-  return res.json({ message: "Lưu vào thư mục đã hủy thành công", path: req.file.path });
+  return res.json({
+    message: "Lưu vào thư mục đã hủy thành công",
+    path: req.file.path,
+  });
 });
 
 // add ke khai chạy lẻ từng dòng
@@ -843,7 +848,7 @@ router.post("/ghidulieubienlai", async (req, res) => {
       .input("tothon", dulieubienlai.tothon)
       .input("tenquanhuyen", dulieubienlai.tenquanhuyen)
       .input("tentinh", dulieubienlai.tentinh)
-      .input("active", 0)
+      .input("active", 3)
       .input("urlNameInvoice", dulieubienlai.urlNameInvoice)
       .input("cccd_nguoithutien", dulieubienlai.cccd_nguoithutien).query(`
                   INSERT INTO bienlaidientu (_id_hskk, sobienlai, ngaybienlai, hoten, masobhxh, ngaysinh, gioitinh, cccd, sodienthoai, nguoithutien, loaihinh, sothang,
@@ -859,7 +864,7 @@ router.post("/ghidulieubienlai", async (req, res) => {
       .input("ngaykhoitao", dulieubienlai.ngaybienlai)
       .input("namtaichinh", dulieubienlai.currentYear)
       .input("ghichu", dulieubienlai.maSoBhxh)
-      .input("active", 0)
+      .input("active", 3)
       .input("hosoIdentity", dulieubienlai.hosoIdentity).query(`
           INSERT INTO bienlai (sobienlai, ngaykhoitao, namtaichinh, ghichu, active, hosoIdentity) 
           VALUES (@sobienlai, @ngaykhoitao, @namtaichinh, @ghichu, @active, @hosoIdentity)
@@ -889,7 +894,8 @@ router.post("/ghidulieubienlai", async (req, res) => {
 
 // xác nhận phê duyệt hồ sơ
 router.post("/apply-invoice-status", async (req, res) => {
-  const { _id, hoten, masobhxh, hosoIdentity, nguoipheduyet, ngaypheduyet } = req.body;
+  const { _id, hoten, masobhxh, hosoIdentity, nguoipheduyet, ngaypheduyet } =
+    req.body;
 
   let transaction = null;
 
@@ -905,7 +911,9 @@ router.post("/apply-invoice-status", async (req, res) => {
       .input("_id", _id)
       .input("nguoipheduyet", nguoipheduyet)
       .input("ngaypheduyet", ngaypheduyet)
-      .query(`UPDATE kekhai SET status_naptien=1, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`);
+      .query(
+        `UPDATE kekhai SET status_naptien=1, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`
+      );
 
     // Câu 2: cập nhật bảng bienlaidientu
     const request2 = transaction.request();
@@ -953,7 +961,18 @@ router.post("/apply-invoice-status", async (req, res) => {
 router.post("/cancel-invoice-status", async (req, res) => {
   // console.log(req.body);
 
-  const { _id, hoten, masobhxh, ghichu, nguoipheduyet, ngaypheduyet } = req.body;
+  const {
+    _id,
+    hoten,
+    masobhxh,
+    ghichu,
+    nguoipheduyet,
+    ngaypheduyet,
+    hosoIdentity,
+    lydohuy,
+    ngayhuybienlai,
+    nguoihuybienlai,
+  } = req.body;
 
   let transaction = null;
 
@@ -970,7 +989,35 @@ router.post("/cancel-invoice-status", async (req, res) => {
       .input("ghichu", ghichu)
       .input("nguoipheduyet", nguoipheduyet)
       .input("ngaypheduyet", ngaypheduyet)
-      .query(`UPDATE kekhai SET trangthai=1, ghichu=@ghichu, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`);
+      .query(
+        `UPDATE kekhai SET trangthai=1, ghichu=@ghichu, nguoipheduyet=@nguoipheduyet, ngaypheduyet=@ngaypheduyet WHERE _id=@_id`
+      );
+
+    // Câu 2: cập nhật bảng bienlaidientu
+    const request2 = transaction.request();
+    await request2
+      .input("hosoIdentity", hosoIdentity)
+      .input("lydohuy", lydohuy)
+      .input("ngayhuybienlai", ngayhuybienlai)
+      .input("nguoihuybienlai", nguoihuybienlai)
+      .query(
+        `UPDATE bienlaidientu SET active=0, lydohuy=@lydohuy, ngayhuybienlai=@ngayhuybienlai, 
+            nguoihuybienlai=@nguoihuybienlai
+          WHERE hosoIdentity=@hosoIdentity`
+      );
+
+    // Câu 3: cập nhật bảng bienlai
+    const request3 = transaction.request();
+    await request3
+      .input("hosoIdentity", hosoIdentity)
+      .input("lydohuy", lydohuy)
+      .input("ngayhuybienlai", ngayhuybienlai)
+      .input("nguoihuybienlai", nguoihuybienlai)
+      .query(
+        `UPDATE bienlai SET active=0, lydohuy=@lydohuy, ngayhuybienlai=@ngayhuybienlai, 
+            nguoihuybienlai=@nguoihuybienlai
+          WHERE hosoIdentity=@hosoIdentity`
+      );
 
     await transaction.commit();
 
@@ -1003,14 +1050,37 @@ router.post("/cancel-invoice-status", async (req, res) => {
 
 // reset hồ sơ từ đã huỷ duyệt sang chưa phê duyệt
 router.post("/reset-hoso-from-dahuy-to-chuaduyet", async (req, res) => {
-  // console.log(req.body);
-  const { _id, hoten, masobhxh } = req.body;
+  console.log(req.body);
+  const { _id, hoten, masobhxh, hosoIdentity } = req.body;
+  let transaction = null;
   try {
     await pool.connect();
-    const result = await pool
-      .request()
+
+    transaction = new Transaction(pool);
+    await transaction.begin();
+
+    const request = transaction.request();
+    await request
       .input("_id", _id)
       .query(`UPDATE kekhai SET trangthai=0 where _id=@_id`);
+
+    // Câu 2: cập nhật bảng bienlaidientu
+    const request2 = transaction.request();
+    await request2.input("hosoIdentity", hosoIdentity).query(
+      `UPDATE bienlaidientu SET active=3, lydohuy='', ngayhuybienlai='', 
+            nguoihuybienlai=''
+          WHERE hosoIdentity=@hosoIdentity`
+    );
+
+    // Câu 3: cập nhật bảng bienlai
+    const request3 = transaction.request();
+    await request3.input("hosoIdentity", hosoIdentity).query(
+      `UPDATE bienlai SET active=3, lydohuy='', ngayhuybienlai='', 
+            nguoihuybienlai=''
+          WHERE hosoIdentity=@hosoIdentity`
+    );
+
+    await transaction.commit();
 
     res.json({
       success: true,
@@ -1022,7 +1092,19 @@ router.post("/reset-hoso-from-dahuy-to-chuaduyet", async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json(error);
+    if (transaction) await transaction.rollback();
+    res.status(500).json({
+      success: false,
+      message: `Thất bại cập nhật _id: ${_id}`,
+      error: error.message,
+      data: {
+        _id,
+        hoten,
+        masobhxh,
+      },
+    });
+  } finally {
+    if (pool.connected) await pool.close();
   }
 });
 
@@ -1049,14 +1131,14 @@ router.post("/reset-hoso-from-daduyet-to-chuaduyet", async (req, res) => {
     await request2
       .input("hosoIdentity", hosoIdentity)
       .query(
-        `UPDATE bienlaidientu SET active=0 WHERE hosoIdentity=@hosoIdentity`
+        `UPDATE bienlaidientu SET active=3 WHERE hosoIdentity=@hosoIdentity`
       );
 
     // Câu 3: cập nhật bảng bienlai
     const request3 = transaction.request();
     await request3
       .input("hosoIdentity", hosoIdentity)
-      .query(`UPDATE bienlai SET active=0 WHERE hosoIdentity=@hosoIdentity`);
+      .query(`UPDATE bienlai SET active=3 WHERE hosoIdentity=@hosoIdentity`);
 
     await transaction.commit();
 
@@ -2786,16 +2868,14 @@ router.post("/hosodadaylencongbhvn-diemthu", async (req, res) => {
 });
 
 router.post("/find-bienlaidientu-huybienlai", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
 
   try {
     await pool.connect();
     const result = await pool
       .request()
       .input("hosoIdentity", req.body.hosoIdentity)
-      .query(
-        `select * from bienlaidientu where hosoIdentity = @hosoIdentity`
-      );
+      .query(`select * from bienlaidientu where hosoIdentity = @hosoIdentity`);
     const hs = result.recordset[0];
     res.json({
       success: true,
@@ -2834,7 +2914,9 @@ router.post("/allsonguoidakekhai-diemthu", async (req, res) => {
     const result = await pool
       .request()
       .input("cccd", req.body.cccd)
-      .query(`select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`);
+      .query(
+        `select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`
+      );
     const hs = result.recordset;
     res.json({
       success: true,
