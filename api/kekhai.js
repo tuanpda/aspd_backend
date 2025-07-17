@@ -26,7 +26,7 @@ if (checkDB === "tcdvthu") {
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
   // "/Users/wolf/Code\ Project/"; // macos
-  thumucbienlaidahuy =
+  // thumucbienlaidahuy =
     // "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
   // var folderBienlaidientu =
   // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
