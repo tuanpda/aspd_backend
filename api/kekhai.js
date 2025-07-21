@@ -15,6 +15,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const { log } = require("console");
+const axios = require('axios')
 
 let checkDB = process.env.SQL_DATABASE;
 let thumucbienlai = "";
@@ -96,6 +97,8 @@ router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
 
 // add ke khai chạy lẻ từng dòng
 router.post("/add-kekhai", async (req, res) => {
+  // console.log(req.body);
+  
   try {
     await pool.connect();
     // Tạo số hồ sơ duy nhất
@@ -160,21 +163,23 @@ router.post("/add-kekhai", async (req, res) => {
       .input("dotkekhai", newSoHoSo)
       .input("kykekhai", req.body.kykekhai)
       .input("ngaykekhai", req.body.ngaykekhai)
-      .input("trangthai", req.body.trangthai).query(`
+      .input("trangthai", req.body.trangthai)
+      .input("maxaphuong_new", req.body.maxaphuong_new)
+      .input("tenxaphuong_new", req.body.tenxaphuong_new).query(`
                   INSERT INTO kekhai (sohoso, matochuc, tentochuc, madaily, tendaily, maloaihinh, tenloaihinh, hoten, masobhxh, cccd, dienthoai,	
                     maphuongan, tenphuongan, ngaysinh, gioitinh, nguoithu, tienluongcs, sotien,	
                     tylengansachdiaphuong, hotrokhac, tungay, tyledong, muctiendong,	
                     maphuongthucdong, tenphuongthucdong, tuthang, tientunguyendong, tienlai, madoituong,	
                     tendoituong, tylensnnht, tiennsnnht, tylensdp, tiennsdp, matinh, tentinh, maquanhuyen, tenquanhuyen,	
                     maxaphuong, tenxaphuong, benhvientinh, mabenhvien, tenbenhvien, tothon, ghichu,	
-                    createdAt, createdBy, updatedAt, updatedBy, dotkekhai, kykekhai, ngaykekhai, trangthai) 
+                    createdAt, createdBy, updatedAt, updatedBy, dotkekhai, kykekhai, ngaykekhai, trangthai, maxaphuong_new, tenxaphuong_new) 
                   VALUES (@sohoso, @matochuc, @tentochuc, @madaily, @tendaily, @maloaihinh, @tenloaihinh, @hoten, @masobhxh, @cccd, @dienthoai,	
                     @maphuongan, @tenphuongan, @ngaysinh, @gioitinh, @nguoithu, @tienluongcs, @sotien,	
                     @tylengansachdiaphuong, @hotrokhac, @tungay, @tyledong, @muctiendong,	
                     @maphuongthucdong, @tenphuongthucdong, @tuthang, @tientunguyendong, @tienlai, @madoituong,	
                     @tendoituong, @tylensnnht, @tiennsnnht, @tylensdp, @tiennsdp, @matinh, @tentinh, @maquanhuyen, @tenquanhuyen,	
                     @maxaphuong, @tenxaphuong, @benhvientinh, @mabenhvien, @tenbenhvien, @tothon, @ghichu,	
-                    @createdAt, @createdBy, @updatedAt, @updatedBy, @dotkekhai, @kykekhai, @ngaykekhai, @trangthai);
+                    @createdAt, @createdBy, @updatedAt, @updatedBy, @dotkekhai, @kykekhai, @ngaykekhai, @trangthai, @maxaphuong_new, @tenxaphuong_new);
               `);
     const kekhai = req.body;
     res.json(kekhai);
@@ -433,10 +438,13 @@ router.post("/update-hoso-kekhai", async (req, res) => {
 
 // add ke khai chạy theo bộ
 router.post("/add-kekhai-series", async (req, res) => {
+  // console.log(req.body);
+  
   let dataKekhai = req.body;
   let transaction = null;
   const listSuccess = [];
   const listFailed = [];
+  // console.log(dataKekhai.ngaybienlai);
 
   try {
     // bắt đầu kết nối
@@ -539,7 +547,9 @@ router.post("/add-kekhai-series", async (req, res) => {
           .input("status_naptien", item.status_naptien)
           .input("hosoIdentity", item.hosoIdentity)
           .input("tennguoitao", item.tennguoitao)
-          .input("hinhthucnap", item.hinhthucnap).query(`
+          .input("hinhthucnap", item.hinhthucnap)
+          .input("maxaphuong_new", item.maxaphuong_new)
+          .input("tenxaphuong_new", item.tenxaphuong_new).query(`
                   INSERT INTO kekhai (sohoso, matochuc, tentochuc, madaily, tendaily, maloaihinh, tenloaihinh, hoten, masobhxh, cccd, dienthoai,	
                     maphuongan, tenphuongan, ngaysinh, gioitinh, nguoithu, manguoithu, tienluongcs, sotien,	
                     tylengansachdiaphuong, hotrokhac, tungay, denngay, tyledong, muctiendong, sothang,
@@ -547,15 +557,15 @@ router.post("/add-kekhai-series", async (req, res) => {
                     tendoituong, tylensnnht, tiennsnnht, tylensdp, tiennsdp, matinh, tentinh, maquanhuyen, tenquanhuyen,	
                     maxaphuong, tenxaphuong, benhvientinh, mabenhvien, tenbenhvien, tothon, ghichu,	
                     createdAt, createdBy, updatedAt, updatedBy, dotkekhai, kykekhai, ngaykekhai, ngaybienlai, sobienlai, trangthai, 
-                    status_hosoloi, status_naptien, hosoIdentity, tennguoitao, hinhthucnap) 
+                    status_hosoloi, status_naptien, hosoIdentity, tennguoitao, hinhthucnap, maxaphuong_new, tenxaphuong_new) 
                   VALUES (@sohoso, @matochuc, @tentochuc, @madaily, @tendaily, @maloaihinh, @tenloaihinh, @hoten, @masobhxh, @cccd, @dienthoai,	
-                    @maphuongan, @tenphuongan, @ngaysinh, @gioitinh, @nguoithu, @manguoithu, @tienluongcs, @sotien,	
+                    @maphuongan, @tenphuongan, @ngaysinh, @gioitinh, @nguoithu,@manguoithu, @tienluongcs, @sotien,	
                     @tylengansachdiaphuong, @hotrokhac, @tungay, @denngay, @tyledong, @muctiendong,	@sothang,
                     @maphuongthucdong, @tenphuongthucdong, @tuthang, @denthang, @tientunguyendong, @tienlai, @madoituong,	
                     @tendoituong, @tylensnnht, @tiennsnnht, @tylensdp, @tiennsdp, @matinh, @tentinh, @maquanhuyen, @tenquanhuyen,	
                     @maxaphuong, @tenxaphuong, @benhvientinh, @mabenhvien, @tenbenhvien, @tothon, @ghichu,	
                     @createdAt, @createdBy, @updatedAt, @updatedBy, @dotkekhai, @kykekhai, @ngaykekhai, @ngaybienlai, @sobienlai, @trangthai, 
-                    @status_hosoloi, @status_naptien, @hosoIdentity, @tennguoitao, @hinhthucnap);
+                    @status_hosoloi, @status_naptien, @hosoIdentity, @tennguoitao, @hinhthucnap, @maxaphuong_new, @tenxaphuong_new);
               `);
 
         // Commit transaction nếu không có lỗi
@@ -892,6 +902,25 @@ router.post("/ghidulieubienlai", async (req, res) => {
   }
 });
 
+router.post("/find-bienlaidientu-huybienlai", async (req, res) => {
+  // console.log(req.body);
+
+  try {
+    await pool.connect();
+    const result = await pool
+      .request()
+      .input("hosoIdentity", req.body.hosoIdentity)
+      .query(`select * from bienlaidientu where hosoIdentity = @hosoIdentity`);
+    const hs = result.recordset[0];
+    res.json({
+      success: true,
+      hs,
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
 // xác nhận phê duyệt hồ sơ
 router.post("/apply-invoice-status", async (req, res) => {
   const { _id, hoten, masobhxh, hosoIdentity, nguoipheduyet, ngaypheduyet } =
@@ -1018,7 +1047,10 @@ router.post("/cancel-invoice-status", async (req, res) => {
           WHERE hosoIdentity=@hosoIdentity`
       );
 
+      console.log('check trước');
     await transaction.commit();
+    console.log('check sau');
+    
 
     res.json({
       success: true,
@@ -1027,7 +1059,7 @@ router.post("/cancel-invoice-status", async (req, res) => {
         _id,
         hoten,
         masobhxh,
-        ghichu,
+        lydohuy,
       },
     });
   } catch (error) {
@@ -1201,6 +1233,7 @@ router.post("/updatestatushoso", async (req, res) => {
     res.status(500).json(error);
   }
 });
+
 
 router.patch("/capnhatkekhai", async (req, res) => {
   // console.log(req.body);
@@ -2009,6 +2042,327 @@ router.get("/kykekhai-search-series-pagi-tonghop", async (req, res) => {
 });
 
 // tìm kiếm hồ sơ đối với nhân viên công ty
+router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
+  // console.log(req.query);
+
+  try {
+    const {
+      kykekhai,
+      sohoso,
+      dotkekhai,
+      ngaykekhai,
+      ngaykekhaiden,
+      masobhxh,
+      hoten,
+      tendaily,
+      maloaihinh,
+      trangthaihs,
+      page = 1,
+      limit = 30,
+    } = req.query;
+
+    // Chuyển đổi page và limit thành số nguyên
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const offset = (pageNumber - 1) * limitNumber;
+
+    // Chuyển đổi ngày người dùng nhập vào sang định dạng DD-MM-YYYY
+    // const [year, month, day] = ngaykekhai.split("-");
+    // let ngaykekhaiInput = day + "-" + month + "-" + year;
+    // const [yeard, monthd, dayd] = ngaykekhaiden.split("-");
+    // let ngaykekhaidenInput = dayd + "-" + monthd + "-" + yeard;
+    // // console.log(ngaykekhaiInput);
+
+    // Khởi tạo câu truy vấn cơ bản
+    let query = "SELECT * FROM kekhai WHERE 1=1";
+    let queryCount = "SELECT COUNT(*) AS totalCount FROM kekhai WHERE 1=1";
+
+    // Thêm các điều kiện tìm kiếm nếu có
+    // console.log(trangthaihs);
+    
+    if (trangthaihs) {
+      if(trangthaihs == 'dapheduyet'){
+        query += " AND trangthai = 0 and status_naptien=1";
+        queryCount += " AND trangthai = 0 and status_naptien=1";
+      }else if(trangthaihs == 'dahuyduyet'){
+        query += " AND trangthai = 1";
+        queryCount += " AND trangthai = 1";
+      }else if(trangthaihs == 'chuapheduyet'){
+        query += " AND trangthai = 0 and status_naptien=0";
+        queryCount += " AND trangthai = 0 and status_naptien=0";
+      }
+    }
+
+    if (kykekhai) {
+      query += " AND kykekhai = @kykekhai";
+      queryCount += " AND kykekhai = @kykekhai";
+    }
+    if (sohoso) {
+      query += " AND sohoso = @sohoso";
+      queryCount += " AND sohoso = @sohoso";
+    }
+    if (dotkekhai) {
+      query += " AND dotkekhai = @dotkekhai";
+      queryCount += " AND dotkekhai = @dotkekhai";
+    }
+    // if (ngaykekhai && !ngaykekhaiden) {
+    //   query += " AND CONVERT(VARCHAR(10), ngaykekhai, 105) = @ngaykekhai";
+    //   queryCount += " AND CONVERT(VARCHAR(10), ngaykekhai, 105) = @ngaykekhai";
+    // }
+    // if (ngaykekhai && ngaykekhaiden) {
+    //   query +=
+    //     " AND CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN @ngaykekhai and @ngaykekhaiden";
+    //   queryCount +=
+    //     " AND CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN @ngaykekhai and @ngaykekhaiden";
+    // }
+    if (ngaykekhai && !ngaykekhaiden) {
+      query += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
+      queryCount += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
+    }
+
+    if (ngaykekhai && ngaykekhaiden) {
+      query += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) BETWEEN @ngaykekhai AND @ngaykekhaiden`;
+      queryCount += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) BETWEEN @ngaykekhai AND @ngaykekhaiden`;
+    }
+
+    if (masobhxh) {
+      query += " AND masobhxh = @masobhxh";
+      queryCount += " AND masobhxh = @masobhxh";
+    }
+    if (hoten) {
+      query += " AND hoten like @hoten";
+      queryCount += " AND hoten like @hoten";
+    }
+    if (tendaily) {
+      query += " AND tendaily like @tendaily";
+      queryCount += " AND tendaily like @tendaily";
+    }
+    if (maloaihinh) {
+      query += " AND maloaihinh = @maloaihinh";
+      queryCount += " AND maloaihinh = @maloaihinh";
+    }
+
+    // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
+    query +=
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+
+    // console.log(query);
+
+    // Kết nối và thực thi truy vấn
+    await pool.connect();
+
+    const result = await pool
+      .request()
+      .input("kykekhai", kykekhai)
+      .input("sohoso", sohoso)
+      .input("dotkekhai", dotkekhai)
+      .input("ngaykekhai", ngaykekhai)
+      .input("ngaykekhaiden", ngaykekhaiden)
+      .input("masobhxh", masobhxh)
+      .input("maloaihinh", maloaihinh)
+      .input("hoten", `%${hoten}%`)
+      .input("tendaily", `%${tendaily}%`)
+      .input("offset", offset)
+      .input("limit", limitNumber)
+      .query(query);
+
+    const countResult = await pool
+      .request()
+      .input("kykekhai", kykekhai)
+      .input("sohoso", sohoso)
+      .input("dotkekhai", dotkekhai)
+      .input("ngaykekhai", ngaykekhai)
+      .input("ngaykekhaiden", ngaykekhaiden)
+      .input("masobhxh", masobhxh)
+      .input("maloaihinh", maloaihinh)
+      .input("hoten", `%${hoten}%`)
+      .input("tendaily", `%${tendaily}%`)
+      .query(queryCount);
+
+    const totalCount = countResult.recordset[0].totalCount;
+    const totalPages = Math.ceil(totalCount / limitNumber);
+
+    const info = {
+      count: totalCount,
+      pages: totalPages,
+      next:
+        pageNumber < totalPages
+          ? `${req.path}?page=${pageNumber + 1}&limit=${limit}`
+          : null,
+      prev:
+        pageNumber > 1
+          ? `${req.path}?page=${pageNumber - 1}&limit=${limit}`
+          : null,
+    };
+
+    // console.log(result.recordset);
+
+    res.json({ info, results: result.recordset });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// tìm kiếm hồ sơ đối với điểm thu
+router.get("/kykekhai-search-hoso-diemthu-pheduyeths", async (req, res) => {
+  // console.log(req.query);
+
+  try {
+    const {
+      kykekhai,
+      sohoso,
+      dotkekhai,
+      ngaykekhai,
+      ngaykekhaiden,
+      masobhxh,
+      maloaihinh,
+      hoten,
+      madaily,
+      cccd,
+      trangthaihs,
+      page = 1,
+      limit = 30,
+    } = req.query;
+
+    // Chuyển đổi page và limit thành số nguyên
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const offset = (pageNumber - 1) * limitNumber;
+
+    // Chuyển đổi ngày người dùng nhập vào sang định dạng DD-MM-YYYY
+    // const [year, month, day] = ngaykekhai.split("-");
+    // let ngaykekhaiInput = day + "-" + month + "-" + year;
+    // const [yeard, monthd, dayd] = ngaykekhaiden.split("-");
+    // let ngaykekhaidenInput = dayd + "-" + monthd + "-" + yeard;
+    // console.log(ngaykekhaiInput);
+
+    // Khởi tạo câu truy vấn cơ bản
+    let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+    let queryCount =
+      `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+
+    // Thêm các điều kiện tìm kiếm nếu có
+    if (trangthaihs) {
+      if(trangthaihs == 'dapheduyet'){
+        query += " AND trangthai = 0 and status_naptien=1";
+        queryCount += " AND trangthai = 0 and status_naptien=1";
+      }else if(trangthaihs == 'dahuyduyet'){
+        query += " AND trangthai = 1";
+        queryCount += " AND trangthai = 1";
+      }else if(trangthaihs == 'chuapheduyet'){
+        query += " AND trangthai = 0 and status_naptien=0";
+        queryCount += " AND trangthai = 0 and status_naptien=0";
+      }
+    }
+
+    if (kykekhai) {
+      query += " AND kykekhai = @kykekhai";
+      queryCount += " AND kykekhai = @kykekhai";
+    }
+    if (sohoso) {
+      query += " AND sohoso = @sohoso";
+      queryCount += " AND sohoso = @sohoso";
+    }
+    if (dotkekhai) {
+      query += " AND dotkekhai = @dotkekhai";
+      queryCount += " AND dotkekhai = @dotkekhai";
+    }
+    // if (ngaykekhai && !ngaykekhaiden) {
+    //   query += " AND CONVERT(VARCHAR(10), ngaykekhai, 105) = @ngaykekhai";
+    //   queryCount += " AND CONVERT(VARCHAR(10), ngaykekhai, 105) = @ngaykekhai";
+    // }
+    // if (ngaykekhai && ngaykekhaiden) {
+    //   query +=
+    //     " AND CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN @ngaykekhai and @ngaykekhaiden";
+    //   queryCount +=
+    //     " AND CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN @ngaykekhai and @ngaykekhaiden";
+    // }
+
+    if (ngaykekhai && !ngaykekhaiden) {
+      query += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
+      queryCount += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
+    }
+
+    if (ngaykekhai && ngaykekhaiden) {
+      query += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) BETWEEN @ngaykekhai AND @ngaykekhaiden`;
+      queryCount += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) BETWEEN @ngaykekhai AND @ngaykekhaiden`;
+    }
+
+    if (masobhxh) {
+      query += " AND masobhxh = @masobhxh";
+      queryCount += " AND masobhxh = @masobhxh";
+    }
+    if (hoten) {
+      query += " AND hoten like @hoten";
+      queryCount += " AND hoten like @hoten";
+    }
+    if (maloaihinh) {
+      query += " AND maloaihinh = @maloaihinh";
+      queryCount += " AND maloaihinh = @maloaihinh";
+    }
+
+    // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
+    query +=
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+
+    // console.log(query);
+
+    // Kết nối và thực thi truy vấn
+    await pool.connect();
+
+    const result = await pool
+      .request()
+      .input("kykekhai", kykekhai)
+      .input("sohoso", sohoso)
+      .input("dotkekhai", dotkekhai)
+      .input("ngaykekhai", ngaykekhai)
+      .input("ngaykekhaiden", ngaykekhaiden)
+      .input("masobhxh", masobhxh)
+      .input("maloaihinh", maloaihinh)
+      .input("hoten", `%${hoten}%`)
+      .input("madaily", madaily)
+      .input("offset", offset)
+      .input("limit", limitNumber)
+      .query(query);
+
+    const countResult = await pool
+      .request()
+      .input("kykekhai", kykekhai)
+      .input("sohoso", sohoso)
+      .input("dotkekhai", dotkekhai)
+      .input("ngaykekhai", ngaykekhai)
+      .input("ngaykekhaiden", ngaykekhaiden)
+      .input("masobhxh", masobhxh)
+      .input("maloaihinh", maloaihinh)
+      .input("hoten", `%${hoten}%`)
+      .input("madaily", madaily)
+      .query(queryCount);
+
+    const totalCount = countResult.recordset[0].totalCount;
+    const totalPages = Math.ceil(totalCount / limitNumber);
+
+    const info = {
+      count: totalCount,
+      pages: totalPages,
+      next:
+        pageNumber < totalPages
+          ? `${req.path}?page=${pageNumber + 1}&limit=${limit}`
+          : null,
+      prev:
+        pageNumber > 1
+          ? `${req.path}?page=${pageNumber - 1}&limit=${limit}`
+          : null,
+    };
+
+    res.json({ info, results: result.recordset });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// tìm kiếm hồ sơ đối với nhân viên công ty
 router.get("/kykekhai-search-hoso", async (req, res) => {
   // console.log(req.query);
 
@@ -2045,14 +2399,16 @@ router.get("/kykekhai-search-hoso", async (req, res) => {
     let queryCount = "SELECT COUNT(*) AS totalCount FROM kekhai WHERE 1=1";
 
     // Thêm các điều kiện tìm kiếm nếu có
+    // console.log(trangthaihs);
+    
     // if (trangthaihs) {
-    //   if (trangthaihs == "dapheduyet") {
+    //   if(trangthaihs == 'dapheduyet'){
     //     query += " AND trangthai = 0 and status_naptien=1";
     //     queryCount += " AND trangthai = 0 and status_naptien=1";
-    //   } else if (trangthaihs == "dahuyduyet") {
+    //   }else if(trangthaihs == 'dahuyduyet'){
     //     query += " AND trangthai = 1";
     //     queryCount += " AND trangthai = 1";
-    //   } else if (trangthaihs == "chuapheduyet") {
+    //   }else if(trangthaihs == 'chuapheduyet'){
     //     query += " AND trangthai = 0 and status_naptien=0";
     //     queryCount += " AND trangthai = 0 and status_naptien=0";
     //   }
@@ -2109,7 +2465,7 @@ router.get("/kykekhai-search-hoso", async (req, res) => {
 
     // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
     query +=
-      " order by _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
 
     // console.log(query);
 
@@ -2184,8 +2540,8 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
       maloaihinh,
       hoten,
       madaily,
-      // trangthaihs,
       cccd,
+      // trangthaihs,
       page = 1,
       limit = 30,
     } = req.query;
@@ -2203,18 +2559,19 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
     // console.log(ngaykekhaiInput);
 
     // Khởi tạo câu truy vấn cơ bản
-    let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
-    let queryCount = `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12)='${cccd}'`;
+    let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+    let queryCount =
+      `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
 
-    // // Thêm các điều kiện tìm kiếm nếu có
+    // Thêm các điều kiện tìm kiếm nếu có
     // if (trangthaihs) {
-    //   if (trangthaihs == "dapheduyet") {
+    //   if(trangthaihs == 'dapheduyet'){
     //     query += " AND trangthai = 0 and status_naptien=1";
     //     queryCount += " AND trangthai = 0 and status_naptien=1";
-    //   } else if (trangthaihs == "dahuyduyet") {
+    //   }else if(trangthaihs == 'dahuyduyet'){
     //     query += " AND trangthai = 1";
     //     queryCount += " AND trangthai = 1";
-    //   } else if (trangthaihs == "chuapheduyet") {
+    //   }else if(trangthaihs == 'chuapheduyet'){
     //     query += " AND trangthai = 0 and status_naptien=0";
     //     queryCount += " AND trangthai = 0 and status_naptien=0";
     //   }
@@ -2268,7 +2625,7 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
 
     // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
     query +=
-      " order by _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
 
     // console.log(query);
 
@@ -2389,7 +2746,7 @@ router.get("/kykekhai-search-hoso-daguilencong", async (req, res) => {
     if (ngaykekhai && !ngaykekhaiden) {
       query += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
       queryCount += ` AND CONVERT(DATE, TRY_CONVERT(datetime, ngaykekhai, 105)) = @ngaykekhai`;
-      // console.log(query);
+      console.log(query);
     }
 
     if (ngaykekhai && ngaykekhaiden) {
@@ -2416,7 +2773,7 @@ router.get("/kykekhai-search-hoso-daguilencong", async (req, res) => {
 
     // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
     query +=
-      " order by _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
 
     // console.log(query);
 
@@ -2561,7 +2918,7 @@ router.get("/kykekhai-search-hoso-diemthu-daguilencong", async (req, res) => {
 
     // Thêm phần phân trang CONVERT(VARCHAR(10), ngaykekhai, 105) BETWEEN '13-12-2024' AND '14-12-2024';
     query +=
-      " order by _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+      " ORDER BY _id desc OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
 
     // console.log(query);
 
@@ -2866,25 +3223,6 @@ router.post("/hosodadaylencongbhvn-diemthu", async (req, res) => {
   }
 });
 
-router.post("/find-bienlaidientu-huybienlai", async (req, res) => {
-  // console.log(req.body);
-
-  try {
-    await pool.connect();
-    const result = await pool
-      .request()
-      .input("hosoIdentity", req.body.hosoIdentity)
-      .query(`select * from bienlaidientu where hosoIdentity = @hosoIdentity`);
-    const hs = result.recordset[0];
-    res.json({
-      success: true,
-      hs,
-    });
-  } catch (error) {
-    res.status(500).json(error);
-  }
-});
-
 // hồ sơ đã đẩy lên cổng tài khoản tổng hợp
 router.get("/allsonguoidakekhai", async (req, res) => {
   // console.log(req.body);
@@ -2913,9 +3251,7 @@ router.post("/allsonguoidakekhai-diemthu", async (req, res) => {
     const result = await pool
       .request()
       .input("cccd", req.body.cccd)
-      .query(
-        `select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`
-      );
+      .query(`select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`);
     const hs = result.recordset;
     res.json({
       success: true,
@@ -2925,6 +3261,7 @@ router.post("/allsonguoidakekhai-diemthu", async (req, res) => {
     res.status(500).json(error);
   }
 });
+
 // hồ sơ chưa đẩy lên cổng tài khoản điểm thu
 router.get("/view-item-bienlai", async (req, res) => {
   try {
@@ -2949,7 +3286,7 @@ router.post("/thongke-hosokekhai", async (req, res) => {
   const { cccd } = req.body;
 
   if (!cccd) {
-    return res.status(400).json({ success: false, message: "Thiếu mã cccd" });
+    return res.status(400).json({ success: false, message: "Thiếu CCCD" });
   }
 
   try {
@@ -2957,23 +3294,23 @@ router.post("/thongke-hosokekhai", async (req, res) => {
     const request = pool.request().input("cccd", cccd);
 
     const query = `
-            SELECT
-              COUNT(*) AS tong_hoso,
-              COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
-              COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
-              COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
-              COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien = 0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
-              COUNT(DISTINCT sohoso) AS tong_sohoso,
-              COALESCE(
-                SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
-                0
-              ) AS tong_sotien,
-              COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
-              COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
-              COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
-            FROM kekhai
-            WHERE RIGHT(sohoso, 12) = @cccd
-            `;
+      SELECT 
+          COUNT(*) AS tong_hoso,
+          COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
+          COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
+          COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
+          COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien=0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
+          COUNT(DISTINCT sohoso) AS tong_sohoso,
+          COALESCE(
+              SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
+              0
+            ) AS tong_sotien,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
+      FROM kekhai
+      WHERE RIGHT(sohoso, 12) = @cccd
+    `;
 
     const result = await request.query(query);
     const data = result.recordset[0];
@@ -3075,7 +3412,7 @@ router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily", async (req, res) => {
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
         AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
         AND MONTH(CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-        AND RIGHT(sohoso, 12) = '${cccd}'
+        AND RIGHT(sohoso, 12) = ${cccd}
       GROUP BY maloaihinh
       ORDER BY maloaihinh
     `;
@@ -3100,16 +3437,14 @@ router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
 
     const query = `
       SELECT 
-    RIGHT(k.sohoso, 12) AS cccd,
-          u.name,
-          SUM(CAST(k.sotien AS FLOAT)) AS tongtien
-      FROM kekhai k
-      JOIN users u ON u.cccd = RIGHT(k.sohoso, 12)
+          RIGHT(sohoso, 12) AS cccd,
+          SUM(CAST(sotien AS FLOAT)) AS tongtien
+      FROM kekhai
       WHERE 
-          TRY_CONVERT(datetime, k.ngaykekhai, 105) IS NOT NULL
-          AND YEAR(TRY_CONVERT(datetime, k.ngaykekhai, 105)) = ${nam}
-          AND MONTH(TRY_CONVERT(datetime, k.ngaykekhai, 105)) = ${thang}
-      GROUP BY RIGHT(k.sohoso, 12), u.name
+          TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
+          AND YEAR(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${nam}
+          AND MONTH(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${thang}
+      GROUP BY RIGHT(sohoso, 12)
       ORDER BY tongtien DESC;
 
     `;
@@ -3133,14 +3468,11 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
 
     const cccd = req.query.cccd;
     const nam = parseInt(req.query.nam);
-    const thang = parseInt(req.query.thang);
-
-    console.log(`CCCD: ${cccd}, Năm: ${nam}, Tháng: ${thang}`);
 
     if (!cccd || !nam) {
       return res.status(400).json({
         success: false,
-        message: "Thiếu madaily hoặc năm",
+        message: "Thiếu cccd hoặc năm",
       });
     }
 
@@ -3151,15 +3483,13 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
       FROM kekhai
       WHERE 
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
-        AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
-        AND MONTH(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-        AND RIGHT(sohoso, 12) = '${cccd}'
+        AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = @nam
+        AND RIGHT(sohoso, 12) = @cccd
       GROUP BY MONTH(CONVERT(datetime, ngaykekhai, 105))
       ORDER BY thang
     `;
 
     request.input("nam", nam);
-    request.input("thang", thang);
     request.input("cccd", cccd);
 
     const result = await request.query(query);
@@ -3222,7 +3552,7 @@ router.get("/search-bienlai-dientu-bhxh", async (req, res) => {
     const query = `
       SELECT * FROM bienlaidientu
       ${whereClause}
-      ORDER BY _id DESC
+      ORDER BY ngaybienlai DESC
     `;
 
     const result = await request.query(query);
@@ -3522,5 +3852,89 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
     pool.close();
   }
 });
+
+// HÀM TÌM THÔNG TIN MỚI
+let token = null
+
+async function getValidToken() {
+  if (!token) return await login()
+  try {
+    const decoded = jwt_decode(token)
+    const now = Math.floor(Date.now() / 1000)
+    if (decoded.exp && decoded.exp > now) return token
+    return await login()
+  } catch (e) {
+    return await login()
+  }
+}
+
+async function login() {
+  try {
+    const res = await axios.post('https://luongvinh.com/api/v1/auth/login', {
+      username: 'Nv093',
+      password: '456789@a',
+      email: '',
+      fullName: '',
+      confirm_password: ''
+    })
+    token = res.data?.token || res.data?.data?.token
+    return token
+  } catch (err) {
+    console.error('Lỗi đăng nhập:', err)
+    return null
+  }
+}
+
+// 🧠 API Tìm Thông Tin
+router.post('/getinfo', async (req, res) => {
+  // console.log('start')
+  const { masobhxh } = req.body
+  if (!masobhxh) return res.status(400).json({ success: false, error: 'Thiếu dữ liệu gửi lên' })
+  console.log(masobhxh)
+  try {
+    const validToken = await getValidToken()
+    if (!validToken) return res.status(401).json({ success: false, error: 'Không lấy được token' })
+
+    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/ar/${masobhxh}`
+    const result = await axios.get(apiUrl, {
+      headers: { Authorization: `Bearer ${validToken}` }
+    })
+
+    if (!result.data.success) throw new Error('Dữ liệu trả về không thành công')
+
+    const data = result.data.data.data
+    // console.log(data)
+    res.json({ success: true, data })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, error: 'Không tìm được thông tin' })
+  }
+})
+
+// 🧠 API Tìm Thông Tin
+router.post('/getinfo-bhxh', async (req, res) => {
+  // console.log('start')
+  const { masobhxh } = req.body
+  if (!masobhxh) return res.status(400).json({ success: false, error: 'Thiếu dữ liệu gửi lên' })
+  console.log(masobhxh)
+  try {
+    const validToken = await getValidToken()
+    if (!validToken) return res.status(401).json({ success: false, error: 'Không lấy được token' })
+
+    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/is/${masobhxh}`
+    const result = await axios.get(apiUrl, {
+      headers: { Authorization: `Bearer ${validToken}` }
+    })
+
+    if (!result.data.success) throw new Error('Dữ liệu trả về không thành công')
+
+    const data = result.data.data.data
+    // console.log(data)
+    res.json({ success: true, data })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, error: 'Không tìm được thông tin' })
+  }
+})
 
 module.exports = router;
