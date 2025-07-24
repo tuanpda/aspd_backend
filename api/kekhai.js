@@ -15,7 +15,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const { log } = require("console");
-const axios = require('axios')
+const axios = require("axios");
 
 let checkDB = process.env.SQL_DATABASE;
 let thumucbienlai = "";
@@ -98,7 +98,7 @@ router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
 // add ke khai chạy lẻ từng dòng
 router.post("/add-kekhai", async (req, res) => {
   // console.log(req.body);
-  
+
   try {
     await pool.connect();
     // Tạo số hồ sơ duy nhất
@@ -439,7 +439,7 @@ router.post("/update-hoso-kekhai", async (req, res) => {
 // add ke khai chạy theo bộ
 router.post("/add-kekhai-series", async (req, res) => {
   // console.log(req.body);
-  
+
   let dataKekhai = req.body;
   let transaction = null;
   const listSuccess = [];
@@ -1047,10 +1047,9 @@ router.post("/cancel-invoice-status", async (req, res) => {
           WHERE hosoIdentity=@hosoIdentity`
       );
 
-      console.log('check trước');
+    console.log("check trước");
     await transaction.commit();
-    console.log('check sau');
-    
+    console.log("check sau");
 
     res.json({
       success: true,
@@ -1233,7 +1232,6 @@ router.post("/updatestatushoso", async (req, res) => {
     res.status(500).json(error);
   }
 });
-
 
 router.patch("/capnhatkekhai", async (req, res) => {
   // console.log(req.body);
@@ -2079,15 +2077,15 @@ router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
 
     // Thêm các điều kiện tìm kiếm nếu có
     // console.log(trangthaihs);
-    
+
     if (trangthaihs) {
-      if(trangthaihs == 'dapheduyet'){
+      if (trangthaihs == "dapheduyet") {
         query += " AND trangthai = 0 and status_naptien=1";
         queryCount += " AND trangthai = 0 and status_naptien=1";
-      }else if(trangthaihs == 'dahuyduyet'){
+      } else if (trangthaihs == "dahuyduyet") {
         query += " AND trangthai = 1";
         queryCount += " AND trangthai = 1";
-      }else if(trangthaihs == 'chuapheduyet'){
+      } else if (trangthaihs == "chuapheduyet") {
         query += " AND trangthai = 0 and status_naptien=0";
         queryCount += " AND trangthai = 0 and status_naptien=0";
       }
@@ -2239,18 +2237,17 @@ router.get("/kykekhai-search-hoso-diemthu-pheduyeths", async (req, res) => {
 
     // Khởi tạo câu truy vấn cơ bản
     let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
-    let queryCount =
-      `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+    let queryCount = `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
 
     // Thêm các điều kiện tìm kiếm nếu có
     if (trangthaihs) {
-      if(trangthaihs == 'dapheduyet'){
+      if (trangthaihs == "dapheduyet") {
         query += " AND trangthai = 0 and status_naptien=1";
         queryCount += " AND trangthai = 0 and status_naptien=1";
-      }else if(trangthaihs == 'dahuyduyet'){
+      } else if (trangthaihs == "dahuyduyet") {
         query += " AND trangthai = 1";
         queryCount += " AND trangthai = 1";
-      }else if(trangthaihs == 'chuapheduyet'){
+      } else if (trangthaihs == "chuapheduyet") {
         query += " AND trangthai = 0 and status_naptien=0";
         queryCount += " AND trangthai = 0 and status_naptien=0";
       }
@@ -2400,7 +2397,7 @@ router.get("/kykekhai-search-hoso", async (req, res) => {
 
     // Thêm các điều kiện tìm kiếm nếu có
     // console.log(trangthaihs);
-    
+
     // if (trangthaihs) {
     //   if(trangthaihs == 'dapheduyet'){
     //     query += " AND trangthai = 0 and status_naptien=1";
@@ -2560,8 +2557,7 @@ router.get("/kykekhai-search-hoso-diemthu", async (req, res) => {
 
     // Khởi tạo câu truy vấn cơ bản
     let query = `SELECT * FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
-    let queryCount =
-      `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
+    let queryCount = `SELECT COUNT(*) AS totalCount FROM kekhai WHERE RIGHT(sohoso, 12) = '${cccd}'`;
 
     // Thêm các điều kiện tìm kiếm nếu có
     // if (trangthaihs) {
@@ -3251,7 +3247,9 @@ router.post("/allsonguoidakekhai-diemthu", async (req, res) => {
     const result = await pool
       .request()
       .input("cccd", req.body.cccd)
-      .query(`select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`);
+      .query(
+        `select * from kekhai where RIGHT(sohoso,12)=@cccd order by _id desc`
+      );
     const hs = result.recordset;
     res.json({
       success: true,
@@ -3412,7 +3410,7 @@ router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily", async (req, res) => {
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
         AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
         AND MONTH(CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-        AND RIGHT(sohoso, 12) = ${cccd}
+        AND RIGHT(sohoso, 12) = '${cccd}'
       GROUP BY maloaihinh
       ORDER BY maloaihinh
     `;
@@ -3436,16 +3434,19 @@ router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
     const thang = parseInt(req.query.thang);
 
     const query = `
-      SELECT 
+      SELECT
           RIGHT(sohoso, 12) AS cccd,
+          tennguoitao,
           SUM(CAST(sotien AS FLOAT)) AS tongtien
       FROM kekhai
-      WHERE 
+      WHERE
           TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
           AND YEAR(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${nam}
           AND MONTH(TRY_CONVERT(datetime, ngaykekhai, 105)) = ${thang}
-      GROUP BY RIGHT(sohoso, 12)
+          AND status_naptien = 1
+      GROUP BY RIGHT(sohoso, 12), tennguoitao
       ORDER BY tongtien DESC;
+
 
     `;
 
@@ -3458,8 +3459,6 @@ router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
     res.status(500).json({ success: false, message: "Lỗi server", error });
   }
 });
-
-// Route: /api/kekhai/baocao-tongtien-daily-theo-thang-nam?madaily=DT0035&nam=2025
 
 router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
   try {
@@ -3485,8 +3484,10 @@ router.get("/baocao-tongtien-daily-theo-thang-nam", async (req, res) => {
         TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
         AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = @nam
         AND RIGHT(sohoso, 12) = @cccd
+        AND status_naptien = 1
       GROUP BY MONTH(CONVERT(datetime, ngaykekhai, 105))
-      ORDER BY thang
+      ORDER BY thang;
+
     `;
 
     request.input("nam", nam);
@@ -3854,87 +3855,101 @@ router.get("/bienlai-search-diemthu", async (req, res) => {
 });
 
 // HÀM TÌM THÔNG TIN MỚI
-let token = null
+let token = null;
 
 async function getValidToken() {
-  if (!token) return await login()
+  if (!token) return await login();
   try {
-    const decoded = jwt_decode(token)
-    const now = Math.floor(Date.now() / 1000)
-    if (decoded.exp && decoded.exp > now) return token
-    return await login()
+    const decoded = jwt_decode(token);
+    const now = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp > now) return token;
+    return await login();
   } catch (e) {
-    return await login()
+    return await login();
   }
 }
 
 async function login() {
   try {
-    const res = await axios.post('https://luongvinh.com/api/v1/auth/login', {
-      username: 'Nv093',
-      password: '456789@a',
-      email: '',
-      fullName: '',
-      confirm_password: ''
-    })
-    token = res.data?.token || res.data?.data?.token
-    return token
+    const res = await axios.post("https://luongvinh.com/api/v1/auth/login", {
+      username: "Nv093",
+      password: "456789@a",
+      email: "",
+      fullName: "",
+      confirm_password: "",
+    });
+    token = res.data?.token || res.data?.data?.token;
+    return token;
   } catch (err) {
-    console.error('Lỗi đăng nhập:', err)
-    return null
+    console.error("Lỗi đăng nhập:", err);
+    return null;
   }
 }
 
 // 🧠 API Tìm Thông Tin
-router.post('/getinfo', async (req, res) => {
+router.post("/getinfo", async (req, res) => {
   // console.log('start')
-  const { masobhxh } = req.body
-  if (!masobhxh) return res.status(400).json({ success: false, error: 'Thiếu dữ liệu gửi lên' })
-  console.log(masobhxh)
+  const { masobhxh } = req.body;
+  if (!masobhxh)
+    return res
+      .status(400)
+      .json({ success: false, error: "Thiếu dữ liệu gửi lên" });
+  console.log(masobhxh);
   try {
-    const validToken = await getValidToken()
-    if (!validToken) return res.status(401).json({ success: false, error: 'Không lấy được token' })
+    const validToken = await getValidToken();
+    if (!validToken)
+      return res
+        .status(401)
+        .json({ success: false, error: "Không lấy được token" });
 
-    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/ar/${masobhxh}`
+    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/ar/${masobhxh}`;
     const result = await axios.get(apiUrl, {
-      headers: { Authorization: `Bearer ${validToken}` }
-    })
+      headers: { Authorization: `Bearer ${validToken}` },
+    });
 
-    if (!result.data.success) throw new Error('Dữ liệu trả về không thành công')
+    if (!result.data.success)
+      throw new Error("Dữ liệu trả về không thành công");
 
-    const data = result.data.data.data
+    const data = result.data.data.data;
     // console.log(data)
-    res.json({ success: true, data })
+    res.json({ success: true, data });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, error: 'Không tìm được thông tin' })
+    console.error(error);
+    res.status(500).json({ success: false, error: "Không tìm được thông tin" });
   }
-})
+});
 
 // 🧠 API Tìm Thông Tin
-router.post('/getinfo-bhxh', async (req, res) => {
+router.post("/getinfo-bhxh", async (req, res) => {
   // console.log('start')
-  const { masobhxh } = req.body
-  if (!masobhxh) return res.status(400).json({ success: false, error: 'Thiếu dữ liệu gửi lên' })
-  console.log(masobhxh)
+  const { masobhxh } = req.body;
+  if (!masobhxh)
+    return res
+      .status(400)
+      .json({ success: false, error: "Thiếu dữ liệu gửi lên" });
+  console.log(masobhxh);
   try {
-    const validToken = await getValidToken()
-    if (!validToken) return res.status(401).json({ success: false, error: 'Không lấy được token' })
+    const validToken = await getValidToken();
+    if (!validToken)
+      return res
+        .status(401)
+        .json({ success: false, error: "Không lấy được token" });
 
-    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/is/${masobhxh}`
+    const apiUrl = `https://luongvinh.com/api/v1/kekhai/autocomplete/is/${masobhxh}`;
     const result = await axios.get(apiUrl, {
-      headers: { Authorization: `Bearer ${validToken}` }
-    })
+      headers: { Authorization: `Bearer ${validToken}` },
+    });
 
-    if (!result.data.success) throw new Error('Dữ liệu trả về không thành công')
+    if (!result.data.success)
+      throw new Error("Dữ liệu trả về không thành công");
 
-    const data = result.data.data.data
+    const data = result.data.data.data;
     // console.log(data)
-    res.json({ success: true, data })
+    res.json({ success: true, data });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, error: 'Không tìm được thông tin' })
+    console.error(error);
+    res.status(500).json({ success: false, error: "Không tìm được thông tin" });
   }
-})
+});
 
 module.exports = router;
