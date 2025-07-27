@@ -2052,7 +2052,7 @@ router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
       ngaykekhaiden,
       masobhxh,
       hoten,
-      tendaily,
+      tennguoitao,
       maloaihinh,
       trangthaihs,
       page = 1,
@@ -2131,9 +2131,9 @@ router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
       query += " AND hoten like @hoten";
       queryCount += " AND hoten like @hoten";
     }
-    if (tendaily) {
-      query += " AND tendaily like @tendaily";
-      queryCount += " AND tendaily like @tendaily";
+    if (tennguoitao) {
+      query += " AND tennguoitao like @tennguoitao";
+      queryCount += " AND tennguoitao like @tennguoitao";
     }
     if (maloaihinh) {
       query += " AND maloaihinh = @maloaihinh";
@@ -2159,7 +2159,7 @@ router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
       .input("masobhxh", masobhxh)
       .input("maloaihinh", maloaihinh)
       .input("hoten", `%${hoten}%`)
-      .input("tendaily", `%${tendaily}%`)
+      .input("tennguoitao", `%${tennguoitao}%`)
       .input("offset", offset)
       .input("limit", limitNumber)
       .query(query);
@@ -2174,7 +2174,7 @@ router.get("/kykekhai-search-hoso-pheduyeths", async (req, res) => {
       .input("masobhxh", masobhxh)
       .input("maloaihinh", maloaihinh)
       .input("hoten", `%${hoten}%`)
-      .input("tendaily", `%${tendaily}%`)
+      .input("tennguoitao", `%${tennguoitao}%`)
       .query(queryCount);
 
     const totalCount = countResult.recordset[0].totalCount;
@@ -3949,6 +3949,22 @@ router.post("/getinfo-bhxh", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Không tìm được thông tin" });
+  }
+});
+
+router.get("/danhsachdaily", async (req, res) => {
+  try {
+    await pool.connect();
+    const result = await pool
+      .request()
+      .query(`select _id, name, cccd from users where _id <> 1 and _id<> 1786`);
+    const hs = result.recordset;
+    res.json({
+      success: true,
+      hs,
+    });
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
