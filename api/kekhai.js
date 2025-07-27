@@ -438,7 +438,7 @@ router.post("/update-hoso-kekhai", async (req, res) => {
 
 // add ke khai chạy theo bộ
 router.post("/add-kekhai-series", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
 
   let dataKekhai = req.body;
   let transaction = null;
