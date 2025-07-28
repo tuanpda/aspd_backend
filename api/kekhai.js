@@ -3957,7 +3957,7 @@ router.get("/danhsachdaily", async (req, res) => {
     await pool.connect();
     const result = await pool
       .request()
-      .query(`select _id, name, cccd from users where _id <> 1 and _id<> 1786`);
+      .query(`select _id, name, cccd from users where _id <> 663 and role<> 9`);
     const hs = result.recordset;
     res.json({
       success: true,
