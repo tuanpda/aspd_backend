@@ -23,9 +23,11 @@ let thumucbienlaidahuy = "";
 let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
-  thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  // thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  thumucbienlai = "D:\\"
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
+    
   // "/Users/wolf/Code\ Project/"; // macos
   // thumucbienlaidahuy =
   //   "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
