@@ -23,8 +23,8 @@ let thumucbienlaidahuy = "";
 let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
-  // thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
-  thumucbienlai = "D:\\"
+  thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  // thumucbienlai = "D:\\"
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
     
