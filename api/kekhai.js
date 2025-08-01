@@ -3325,6 +3325,56 @@ router.post("/thongke-hosokekhai", async (req, res) => {
   }
 });
 
+router.post("/thongke-hosokekhai-with-thang-nam", async (req, res) => {
+  const { cccd, thang, nam } = req.body;
+
+  if (!cccd || !thang || !nam) {
+    return res.status(400).json({ success: false, message: "Thiếu CCCD, tháng hoặc năm" });
+  }
+
+  try {
+    await pool.connect();
+    const request = pool.request()
+      .input("cccd", cccd)
+      .input("thang", parseInt(thang))
+      .input("nam", parseInt(nam));
+
+    const query = `
+      SELECT 
+          COUNT(*) AS tong_hoso,
+          COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
+          COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
+          COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
+          COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien = 0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
+          COUNT(DISTINCT sohoso) AS tong_sohoso,
+          COALESCE(
+              SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
+              0
+            ) AS tong_sotien,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
+      FROM kekhai
+      WHERE RIGHT(sohoso, 12) = @cccd
+        MONTH(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @thang
+        AND YEAR(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @nam
+      
+    `;
+
+    const result = await request.query(query);
+    const data = result.recordset[0];
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Lỗi thống kê:", error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+});
+
+
 router.get("/thongke-hosokekhai-tonghop", async (req, res) => {
   try {
     await pool.connect();
@@ -3360,6 +3410,54 @@ router.get("/thongke-hosokekhai-tonghop", async (req, res) => {
     res.status(500).json({ success: false, message: "Lỗi server", error });
   }
 });
+
+router.get("/thongke-hosokekhai-tonghop-with-thang-nam", async (req, res) => {
+  try {
+    const { thang, nam } = req.query;
+
+    if (!thang || !nam) {
+      return res.status(400).json({ success: false, message: "Thiếu tham số tháng hoặc năm" });
+    }
+
+    await pool.connect();
+    const request = pool.request();
+    request.input("thang", parseInt(thang));
+    request.input("nam", parseInt(nam));
+
+    const query = `
+      SELECT 
+          COUNT(*) AS tong_hoso,
+          COALESCE(SUM(CASE WHEN trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_loi,
+          COALESCE(SUM(CASE WHEN status_naptien = 1 THEN 1 ELSE 0 END), 0) AS hoso_dagui,
+          COALESCE(SUM(CASE WHEN status_naptien = 0 AND trangthai = 1 THEN 1 ELSE 0 END), 0) AS hoso_chuaduyet,
+          COALESCE(SUM(CASE WHEN trangthai = 0 AND status_naptien=0 THEN 1 ELSE 0 END), 0) AS hoso_chuagui,
+          COUNT(DISTINCT sohoso) AS tong_sohoso,
+          COALESCE(
+              SUM(CASE WHEN status_naptien = 1 THEN CAST(sotien AS FLOAT) ELSE 0 END),
+              0
+            ) AS tong_sotien,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'AR' THEN 1 ELSE 0 END), 0) AS tong_AR,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'BI' THEN 1 ELSE 0 END), 0) AS tong_BI,
+          COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
+      FROM kekhai
+        WHERE 
+      MONTH(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @thang
+      AND YEAR(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @nam
+    `;
+
+    const result = await request.query(query);
+    const data = result.recordset[0];
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Lỗi thống kê:", error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+});
+
 
 // chart mã loại kê khai theo tháng và năm (lọc theo cả năm và tháng)
 router.get("/baocao-loaihinh-kekhai-theo-thang-nam", async (req, res) => {
