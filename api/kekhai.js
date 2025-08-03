@@ -3356,7 +3356,7 @@ router.post("/thongke-hosokekhai-with-thang-nam", async (req, res) => {
           COALESCE(SUM(CASE WHEN maloaihinh = 'IS' THEN 1 ELSE 0 END), 0) AS tong_IS
       FROM kekhai
       WHERE RIGHT(sohoso, 12) = @cccd
-        MONTH(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @thang
+        AND MONTH(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @thang
         AND YEAR(TRY_CONVERT(DATETIME, ngaykekhai, 105)) = @nam
       
     `;
@@ -3546,8 +3546,6 @@ router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
           AND status_naptien = 1
       GROUP BY RIGHT(sohoso, 12), tennguoitao
       ORDER BY tongtien DESC;
-
-
     `;
 
     const result = await request.query(query);
