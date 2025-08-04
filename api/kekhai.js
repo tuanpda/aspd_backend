@@ -20,10 +20,12 @@ const axios = require("axios");
 let checkDB = process.env.SQL_DATABASE;
 let thumucbienlai = "";
 let thumucbienlaidahuy = "";
+let thumucbienlaidoisoat = "";
 let urlServer = "";
 let urlServerBackend;
 if (checkDB === "tcdvthu") {
   thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
+  thumucbienlaidoisoat = "/home/thuan/aspd_client/static/bienlaidientu/bienlaidoisoat";
   // thumucbienlai = "D:\\"
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
@@ -53,10 +55,6 @@ console.log("=====================");
 // SET STORAGE
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    /* Nhớ sửa đường dẫn khi deploy lên máy chủ */
-    // đường dẫn cho máy dev MacOS
-    // cb(null, "/Users/apple/Documents/code/p_Tcdvthu/tcdvthu_client/static/");
-    // đường dẫn khi deploy máy chủ PHỦ DIỄN
     cb(null, thumucbienlai);
   },
   filename: function (req, file, cb) {
@@ -67,6 +65,15 @@ var storage = multer.diskStorage({
 var storageHuy = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, thumucbienlaidahuy);
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, thumucbienlaidoisoat);
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
@@ -95,6 +102,14 @@ router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
     message: "Lưu vào thư mục đã hủy thành công",
     path: req.file.path,
   });
+});
+
+router.post("/upload-bienlai-doisoat", upload.single("pdf"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Không có file" });
+  }
+
+  return res.json({ message: "Lưu thành công biên lai đối soát", path: req.file.path });
 });
 
 // add ke khai chạy lẻ từng dòng
@@ -4065,5 +4080,117 @@ router.get("/danhsachdaily", async (req, res) => {
     res.status(500).json(error);
   }
 });
+
+// code mới ngày 3/8/2025 - Code trợ lý cá nhân
+router.get("/hosocanhbaodenhanbhyt", async (req, res) => {
+  try {
+    const { cccd } = req.query;
+
+    if (!cccd || cccd.length !== 12) {
+      return res.status(400).json({ success: false, message: "Thiếu hoặc sai CCCD" });
+    }
+
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .input("cccd", cccd)
+      .query(`
+        SELECT top 10 *
+        FROM kekhai
+        WHERE
+          maloaihinh <> 'IS' AND maloaihinh <> 'IL'
+          AND RIGHT(sohoso, 12) = @cccd
+          AND TRY_CONVERT(DATE, denngay, 103) IS NOT NULL
+          AND DATEDIFF(DAY, GETDATE(), TRY_CONVERT(DATE, denngay, 103)) BETWEEN 0 AND 30
+        ORDER BY TRY_CONVERT(DATE, denngay, 103) ASC
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+router.get("/hosocanhbaodenhanbhxh", async (req, res) => {
+  try {
+    const { cccd } = req.query;
+
+    if (!cccd || cccd.length !== 12) {
+      return res.status(400).json({ success: false, message: "Thiếu hoặc sai CCCD" });
+    }
+
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .input("cccd", cccd)
+      .query(`
+        SELECT top 10 *
+        FROM kekhai
+        WHERE
+          maloaihinh = 'IS'
+          AND RIGHT(sohoso, 12) = @cccd
+          AND TRY_CONVERT(DATE, '01/' + denthang, 103) IS NOT NULL
+          AND DATEDIFF(
+            DAY,
+            GETDATE(),
+            EOMONTH(TRY_CONVERT(DATE, '01/' + denthang, 103))
+          ) BETWEEN 0 AND 30
+        ORDER BY EOMONTH(TRY_CONVERT(DATE, '01/' + denthang, 103)) ASC
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+router.get("/baocaotaichinhcanhan", async (req, res) => {
+  try {
+    const { cccd, thang, nam } = req.query;
+    // console.log(thang, nam)
+    if (!cccd || cccd.length !== 12) {
+      return res.status(400).json({ success: false, message: "Thiếu hoặc sai CCCD" });
+    }
+
+    const thangInt = parseInt(thang);
+    const namInt = parseInt(nam);
+
+    if (
+      isNaN(thangInt) || thangInt < 1 || thangInt > 12 ||
+      isNaN(namInt) || namInt < 2000 || namInt > 2100
+    ) {
+      return res.status(400).json({ success: false, message: "Tháng/năm không hợp lệ" });
+    }
+
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .input("cccd", cccd)
+      .input("thang", thangInt)
+      .input("nam", namInt)
+      .query(`
+        SELECT 
+          maloaihinh,
+          tenloaihinh,
+          COUNT(*) AS sohoso,
+          SUM(CAST(sotien AS FLOAT)) AS tongtien
+        FROM kekhai
+        WHERE 
+          MONTH(TRY_CONVERT(DATE, ngaykekhai, 103)) = @thang AND
+          YEAR(TRY_CONVERT(DATE, ngaykekhai, 103)) = @nam AND
+          RIGHT(sohoso, 12) = @cccd
+        GROUP BY maloaihinh, tenloaihinh
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+
 
 module.exports = router;
