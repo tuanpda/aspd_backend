@@ -71,7 +71,7 @@ var storageHuy = multer.diskStorage({
   },
 });
 
-var storage = multer.diskStorage({
+var storageDoisoat = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, thumucbienlaidoisoat);
   },
@@ -82,7 +82,7 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 var uploadHuy = multer({ storage: storageHuy });
-var uploadDoisoat = multer({ storage: storageHuy });
+var uploadDoisoat = multer({ storage: storageDoisoat });
 
 // Ghi biên lai điện tử
 router.post("/upload-bienlai", upload.single("pdf"), (req, res) => {
