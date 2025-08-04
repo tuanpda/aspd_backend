@@ -82,6 +82,7 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 var uploadHuy = multer({ storage: storageHuy });
+var uploadDoisoat = multer({ storage: storageHuy });
 
 // Ghi biên lai điện tử
 router.post("/upload-bienlai", upload.single("pdf"), (req, res) => {
@@ -104,7 +105,7 @@ router.post("/upload-bienlai-huy", uploadHuy.single("pdf"), (req, res) => {
   });
 });
 
-router.post("/upload-bienlai-doisoat", upload.single("pdf"), (req, res) => {
+router.post("/upload-bienlai-doisoat", uploadDoisoat.single("pdf"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Không có file" });
   }
