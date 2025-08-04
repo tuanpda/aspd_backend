@@ -27,6 +27,8 @@ if (checkDB === "tcdvthu") {
   thumucbienlai = "/home/thuan/aspd_client/static/bienlaidientu/bienlai";
   thumucbienlaidoisoat = "/home/thuan/aspd_client/static/bienlaidientu/bienlaidoisoat";
   // thumucbienlai = "D:\\"
+  // thumucbienlai = "/Users/wolf/Code\ Project/"; // macos
+
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
     
