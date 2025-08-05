@@ -31,20 +31,8 @@ if (checkDB === "tcdvthu") {
 
   thumucbienlaidahuy =
     "/home/thuan/aspd_client/static/bienlaidientu/bienlaidahuy";
-    
-  // "/Users/wolf/Code\ Project/"; // macos
-  // thumucbienlaidahuy =
-  //   "D:\\SOFTWARE\\ANSINHSOFTWARE_ASPD\\CODE\\aspd_client\\static\\bienlaidientu\\bienlaidahuy"; // test máy tuấn máy bàn
-  // var folderBienlaidientu =
-  // "/Users/apple/Documents/code/p_159/tcdvthu_ansinh159_client/static/bienlaidientu"; // macos
-  // "/Users/apple/Documents/code/p_159";
-  urlServer = "14.224.148.17:4042";
-  urlServerBackend = "14.224.148.17:1552"; // phủ diễn
-} else if (checkDB === "tcdvthu_hungnguyen") {
-  thumucbienlai = "/home/thuan/ashn_client/static/bienlaihungnguyen/bienlai";
-  // "D:\\";
-  urlServer = "14.224.129.177:4020";
-  urlServerBackend = "14.224.148.17:4019"; // hưng nguyên
+  urlServer = "ansinhxahoiphudien";
+  urlServerBackend = "ansinhxahoiphudien:1552"; // phủ diễn
 }
 
 console.log("=====================");
@@ -3543,6 +3531,37 @@ router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily", async (req, res) => {
   }
 });
 
+router.get("/baocao-loaihinh-kekhai-theo-thang-nam-daily-tonghop", async (req, res) => {
+  try {
+    await pool.connect();
+    const request = pool.request();
+
+    const nam = parseInt(req.query.nam);
+    const thang = parseInt(req.query.thang);
+
+    const query = `
+      SELECT 
+        maloaihinh,
+        COUNT(*) AS soLuong
+      FROM kekhai
+      WHERE 
+        TRY_CONVERT(datetime, ngaykekhai, 105) IS NOT NULL
+        AND YEAR(CONVERT(datetime, ngaykekhai, 105)) = ${nam}
+        AND MONTH(CONVERT(datetime, ngaykekhai, 105)) = ${thang}
+      GROUP BY maloaihinh
+      ORDER BY maloaihinh
+    `;
+
+    const result = await request.query(query);
+    const data = result.recordset;
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Lỗi truy vấn báo cáo theo tháng và năm:", error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+});
+
 router.get("/baocao-tongtien-theo-daily-thang-nam", async (req, res) => {
   try {
     await pool.connect();
@@ -4115,6 +4134,28 @@ router.get("/hosocanhbaodenhanbhyt", async (req, res) => {
   }
 });
 
+router.get("/hosocanhbaodenhanbhyt-tonghop", async (req, res) => {
+  try {
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .query(`
+        SELECT top 10 *
+        FROM kekhai
+        WHERE
+          maloaihinh <> 'IS' AND maloaihinh <> 'IL'
+          AND TRY_CONVERT(DATE, denngay, 103) IS NOT NULL
+          AND DATEDIFF(DAY, GETDATE(), TRY_CONVERT(DATE, denngay, 103)) BETWEEN 0 AND 30
+        ORDER BY TRY_CONVERT(DATE, denngay, 103) ASC
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
 router.get("/hosocanhbaodenhanbhxh", async (req, res) => {
   try {
     const { cccd } = req.query;
@@ -4133,6 +4174,32 @@ router.get("/hosocanhbaodenhanbhxh", async (req, res) => {
         WHERE
           maloaihinh = 'IS'
           AND RIGHT(sohoso, 12) = @cccd
+          AND TRY_CONVERT(DATE, '01/' + denthang, 103) IS NOT NULL
+          AND DATEDIFF(
+            DAY,
+            GETDATE(),
+            EOMONTH(TRY_CONVERT(DATE, '01/' + denthang, 103))
+          ) BETWEEN 0 AND 30
+        ORDER BY EOMONTH(TRY_CONVERT(DATE, '01/' + denthang, 103)) ASC
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+router.get("/hosocanhbaodenhanbhxh-tonghop", async (req, res) => {
+  try {
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .query(`
+        SELECT top 10 *
+        FROM kekhai
+        WHERE
+          maloaihinh = 'IS'
           AND TRY_CONVERT(DATE, '01/' + denthang, 103) IS NOT NULL
           AND DATEDIFF(
             DAY,
@@ -4184,6 +4251,45 @@ router.get("/baocaotaichinhcanhan", async (req, res) => {
           MONTH(TRY_CONVERT(DATE, ngaykekhai, 103)) = @thang AND
           YEAR(TRY_CONVERT(DATE, ngaykekhai, 103)) = @nam AND
           RIGHT(sohoso, 12) = @cccd
+        GROUP BY maloaihinh, tenloaihinh
+      `);
+
+    const hs = result.recordset;
+    res.json({ success: true, hs });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+router.get("/baocaotaichinhtonghop", async (req, res) => {
+  try {
+    const { thang, nam } = req.query;
+
+    const thangInt = parseInt(thang);
+    const namInt = parseInt(nam);
+
+    if (
+      isNaN(thangInt) || thangInt < 1 || thangInt > 12 ||
+      isNaN(namInt) || namInt < 2000 || namInt > 2100
+    ) {
+      return res.status(400).json({ success: false, message: "Tháng/năm không hợp lệ" });
+    }
+
+    const poolConn = await pool.connect();
+    const result = await poolConn
+      .request()
+      .input("thang", thangInt)
+      .input("nam", namInt)
+      .query(`
+        SELECT 
+          maloaihinh,
+          tenloaihinh,
+          COUNT(*) AS sohoso,
+          SUM(CAST(sotien AS FLOAT)) AS tongtien
+        FROM kekhai
+        WHERE 
+          MONTH(TRY_CONVERT(DATE, ngaykekhai, 103)) = @thang AND
+          YEAR(TRY_CONVERT(DATE, ngaykekhai, 103)) = @nam
         GROUP BY maloaihinh, tenloaihinh
       `);
 
