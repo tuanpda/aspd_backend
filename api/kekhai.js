@@ -4007,6 +4007,8 @@ async function getValidToken() {
 async function login() {
   try {
     const res = await axios.post("https://luongvinh.com/api/v1/auth/login", {
+      // username: "3002225999_042182001769_thanhhoanggiatranthihang",
+      // password: "123456@a",
       username: "042301002670",
       password: "456789@a",
       email: "",
@@ -4032,6 +4034,7 @@ router.post("/getinfo", async (req, res) => {
   console.log(masobhxh);
   try {
     const validToken = await getValidToken();
+    console.log(validToken);
     if (!validToken)
       return res
         .status(401)
