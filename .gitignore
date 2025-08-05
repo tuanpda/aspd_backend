@@ -5,7 +5,7 @@ node_modules/
 
 # .env
 
-static/
+# static/
 
 # Expo
 .expo/
